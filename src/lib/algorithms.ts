@@ -27,7 +27,13 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
   reason: string;
 } {
   if (history.length === 0) {
-    return { load: 0, reps: targetReps, reason: 'Sin historial' };
+    return { 
+      load: 0, 
+      reps: targetReps, 
+      reason: 'Sin historial',
+      explanation: 'No hay datos previos. Comienza con un peso que te permita completar las repeticiones con 2-3 RIR.',
+      alternative: null
+    };
   }
   
   const recentSets = history.slice(-3);
@@ -41,7 +47,13 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
     return {
       load: Math.round(lastLoad * 1.05),
       reps: targetReps,
-      reason: 'Aumentar carga: RIR bajo y reps completadas',
+      reason: '+5% carga',
+      explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)} y completaste ${lastReps} reps. Estás listo para más peso.`,
+      alternative: {
+        load: lastLoad,
+        reps: Math.min(targetReps + 1, 15),
+        reason: 'Mantener carga, +1 rep'
+      }
     };
   }
   

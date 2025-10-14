@@ -4,6 +4,7 @@ import { BarChart3, TrendingUp, Target } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useWeeklyVolume, useAdherence, useStrengthProgression, useVolumeByMuscle } from '@/hooks/useStats';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { MuscleVolumeTracker } from '@/components/progress/MuscleVolumeTracker';
 
 export default function Progress() {
   const { data: weeklyVolume = 0 } = useWeeklyVolume();
@@ -74,6 +75,7 @@ export default function Progress() {
             <TabsTrigger value="volume">Volumen</TabsTrigger>
             <TabsTrigger value="strength">Fuerza</TabsTrigger>
             <TabsTrigger value="muscles">Por Músculo</TabsTrigger>
+            <TabsTrigger value="analysis">Análisis</TabsTrigger>
           </TabsList>
           
           <TabsContent value="volume" className="space-y-4">
@@ -134,6 +136,10 @@ export default function Progress() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="analysis" className="space-y-4">
+            <MuscleVolumeTracker weeks={4} />
           </TabsContent>
         </Tabs>
       </div>
