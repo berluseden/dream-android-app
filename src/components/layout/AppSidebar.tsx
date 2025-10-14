@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: Home, roles: ['admin', 'coach', 'user'] },
@@ -39,13 +40,16 @@ const navItems = [
 
 export function AppSidebar() {
   const { state } = useSidebar();
-  const { profile, role, signOut } = useAuth();
+  const { profile, role, loading, signOut } = useAuth();
   const location = useLocation();
 
-  const filteredItems = navItems.filter(item => {
-    if (!role) return false;
-    return item.roles.includes(role);
-  });
+  // Durante carga, mostrar items básicos; después filtrar por role
+  const filteredItems = loading 
+    ? [] 
+    : navItems.filter(item => {
+        if (!role) return item.roles.includes('user'); // Fallback a items de user
+        return item.roles.includes(role);
+      });
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -61,8 +65,17 @@ export function AppSidebar() {
           {!collapsed && (
             <div>
               <h2 className="font-bold text-lg">App Hipertrofia</h2>
-              <p className="text-sm text-muted-foreground">{profile?.name}</p>
-              <Badge className="mt-1" variant="secondary">{role}</Badge>
+              {loading ? (
+                <>
+                  <Skeleton className="h-4 w-32 mt-1" />
+                  <Skeleton className="h-5 w-16 mt-1" />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">{profile?.name}</p>
+                  <Badge className="mt-1" variant="secondary">{role}</Badge>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -71,16 +84,29 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navegación</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {filteredItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end={item.url === '/'}>
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {loading ? (
+                // Skeleton durante carga
+                Array.from({ length: 6 }).map((_, i) => (
+                  <SidebarMenuItem key={`skeleton-${i}`}>
+                    <SidebarMenuButton disabled>
+                      <Skeleton className="h-4 w-4 rounded" />
+                      {!collapsed && <Skeleton className="h-4 w-24" />}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              ) : (
+                // Menu real después de cargar
+                filteredItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink to={item.url} end={item.url === '/'}>
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
