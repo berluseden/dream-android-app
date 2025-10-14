@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import Exercises from "./pages/Exercises";
 import CoachClients from "./pages/coach/Clients";
 import Workouts from "./pages/Workouts";
+import TodayWorkout from "./pages/TodayWorkout";
+import CreateMesocycle from "./pages/mesocycles/CreateMesocycle";
 import Progress from "./pages/Progress";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
@@ -68,6 +70,24 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Workouts />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/workout/today"
+              element={
+                <ProtectedRoute>
+                  <TodayWorkout />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/mesocycles/create"
+              element={
+                <ProtectedRoute>
+                  <CreateMesocycle />
                 </ProtectedRoute>
               }
             />

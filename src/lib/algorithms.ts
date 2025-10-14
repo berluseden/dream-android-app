@@ -1,0 +1,181 @@
+/**
+ * Algoritmos de progresión y autorregulación
+ */
+
+export interface SetHistory {
+  load: number;
+  completed_reps: number;
+  rir_actual: number;
+  rpe: number;
+  perceived_pump?: number;
+  perceived_soreness?: number;
+  created_at: Date;
+}
+
+/**
+ * Calcula la carga sugerida para la próxima serie basándose en el historial
+ * 
+ * Lógica:
+ * - Si RIR promedio ≤ 0.5 y completó reps target: +5% carga
+ * - Si RIR promedio ≤ 1.5: mantener carga, +1 rep
+ * - Si RIR promedio ≥ 3: -10% carga
+ * - Caso contrario: mantener
+ */
+export function calculateNextLoad(history: SetHistory[], targetReps: number = 10): {
+  load: number;
+  reps: number;
+  reason: string;
+} {
+  if (history.length === 0) {
+    return { load: 0, reps: targetReps, reason: 'Sin historial' };
+  }
+  
+  const recentSets = history.slice(-3);
+  const avgRir = recentSets.reduce((sum, s) => sum + s.rir_actual, 0) / recentSets.length;
+  const lastSet = recentSets[recentSets.length - 1];
+  const lastLoad = lastSet.load;
+  const lastReps = lastSet.completed_reps;
+  
+  // Muy cerca del fallo y completó reps -> aumentar carga
+  if (avgRir <= 0.5 && lastReps >= targetReps) {
+    return {
+      load: Math.round(lastLoad * 1.05),
+      reps: targetReps,
+      reason: 'Aumentar carga: RIR bajo y reps completadas',
+    };
+  }
+  
+  // Cerca del fallo -> aumentar reps
+  if (avgRir <= 1.5) {
+    return {
+      load: lastLoad,
+      reps: Math.min(targetReps + 1, 15),
+      reason: 'Aumentar repeticiones',
+    };
+  }
+  
+  // Lejos del fallo -> reducir carga
+  if (avgRir >= 3) {
+    return {
+      load: Math.round(lastLoad * 0.90),
+      reps: targetReps,
+      reason: 'Reducir carga: RIR alto',
+    };
+  }
+  
+  return {
+    load: lastLoad,
+    reps: targetReps,
+    reason: 'Mantener',
+  };
+}
+
+/**
+ * Calcula el 1RM estimado usando la fórmula de Epley
+ * e1RM = peso × (1 + reps / 30)
+ */
+export function calculateE1RM(load: number, reps: number): number {
+  return Math.round(load * (1 + reps / 30));
+}
+
+/**
+ * Calcula el 1RM estimado ajustado por RIR
+ */
+export function calculateE1RMWithRIR(load: number, reps: number, rir: number): number {
+  const totalReps = reps + rir;
+  return calculateE1RM(load, totalReps);
+}
+
+/**
+ * Determina si hay estancamiento en un ejercicio
+ * Estancamiento = 3+ sesiones sin mejora en e1RM
+ */
+export function detectPlateau(history: SetHistory[], threshold: number = 3): {
+  isPlateaued: boolean;
+  sessionsWithoutImprovement: number;
+} {
+  if (history.length < threshold) {
+    return { isPlateaued: false, sessionsWithoutImprovement: 0 };
+  }
+  
+  const e1rms = history.map(s => calculateE1RMWithRIR(s.load, s.completed_reps, s.rir_actual));
+  
+  let noImprovementCount = 0;
+  for (let i = e1rms.length - 1; i > 0; i--) {
+    if (e1rms[i] <= e1rms[i - 1]) {
+      noImprovementCount++;
+    } else {
+      break;
+    }
+  }
+  
+  return {
+    isPlateaued: noImprovementCount >= threshold,
+    sessionsWithoutImprovement: noImprovementCount,
+  };
+}
+
+/**
+ * Calcula el ajuste de volumen semanal basado en feedback subjetivo
+ * 
+ * Reglas:
+ * - Soreness promedio ≥ 6 → Reducir 20%
+ * - Pump promedio ≤ 3 Y soreness promedio ≤ 3 → Añadir 1 set
+ * - Caso contrario: mantener
+ */
+export function calculateVolumeAdjustment(
+  pumpScores: number[],
+  sorenessScores: number[]
+): {
+  adjustment: number;
+  reason: string;
+} {
+  if (pumpScores.length === 0 || sorenessScores.length === 0) {
+    return { adjustment: 0, reason: 'Sin datos suficientes' };
+  }
+  
+  const avgPump = pumpScores.reduce((sum, s) => sum + s, 0) / pumpScores.length;
+  const avgSoreness = sorenessScores.reduce((sum, s) => sum + s, 0) / sorenessScores.length;
+  
+  // Fatiga excesiva
+  if (avgSoreness >= 6) {
+    return {
+      adjustment: -0.2,
+      reason: 'Reducir volumen: fatiga excesiva',
+    };
+  }
+  
+  // Respuesta baja
+  if (avgPump <= 3 && avgSoreness <= 3) {
+    return {
+      adjustment: 1,
+      reason: 'Añadir 1 set: respuesta baja',
+    };
+  }
+  
+  return {
+    adjustment: 0,
+    reason: 'Mantener volumen',
+  };
+}
+
+/**
+ * Calcula el RIR target óptimo basado en el tipo de ejercicio
+ */
+export function calculateOptimalRIR(
+  exerciseType: 'compound' | 'isolation',
+  weekNumber: number,
+  totalWeeks: number
+): number {
+  const isDeloadWeek = weekNumber === totalWeeks;
+  
+  if (isDeloadWeek) return 4;
+  
+  // Ejercicios compuestos: RIR más conservador
+  if (exerciseType === 'compound') {
+    return weekNumber <= 2 ? 3 : weekNumber <= 4 ? 2 : 1;
+  }
+  
+  // Ejercicios de aislamiento: RIR más agresivo
+  return weekNumber <= 2 ? 2 : weekNumber <= 4 ? 1 : 0;
+}

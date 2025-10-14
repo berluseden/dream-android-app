@@ -20,12 +20,14 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Play,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: Home, roles: ['admin', 'coach', 'user'] },
+  { title: 'Hoy', url: '/workout/today', icon: Play, roles: ['user'] },
   { title: 'Ejercicios', url: '/exercises', icon: Dumbbell, roles: ['admin', 'coach', 'user'] },
   { title: 'Clientes', url: '/coach/clients', icon: Users, roles: ['coach', 'admin'] },
   { title: 'Entrenamientos', url: '/workouts', icon: Calendar, roles: ['user', 'coach'] },
