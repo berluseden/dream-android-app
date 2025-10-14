@@ -33,6 +33,7 @@ const navItems = [
   { title: 'Entrenamientos', url: '/workouts', icon: Calendar, roles: ['user', 'coach'] },
   { title: 'Progreso', url: '/progress', icon: BarChart3, roles: ['user', 'coach'] },
   { title: 'Mensajes', url: '/messages', icon: MessageSquare, roles: ['coach', 'user'] },
+  { title: 'Admin', url: '/admin', icon: Settings, roles: ['admin'] },
   { title: 'Configuración', url: '/settings', icon: Settings, roles: ['admin', 'coach', 'user'] },
 ];
 

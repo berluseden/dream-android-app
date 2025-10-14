@@ -30,7 +30,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId) || isAssignedCoach(userId) || isAdmin();
       allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isOwner(userId) || isAssignedCoach(userId);
+      allow update: if isOwner(userId) || isAssignedCoach(userId) || 
+                       (isAdmin() && request.resource.data.keys().hasAny(['name', 'email', 'coach_id', 'equipment', 'level', 'experience_years', 'goals', 'units']));
       allow delete: if isAdmin();
     }
     
@@ -49,6 +50,45 @@ service cloud.firestore {
       allow create: if isAdmin() || isCoach();
       allow update, delete: if isAdmin() || 
                                (isCoach() && resource.data.created_by == request.auth.uid);
+    }
+    
+    match /admin_settings/{doc} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    
+    match /invitations/{inviteId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.email == request.auth.token.email);
+      allow write: if isAdmin();
+    }
+    
+    match /backups/{jobId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /templates/{templateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /mesocycles/{mesocycleId} {
+      allow read: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+      allow write: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+    }
+    
+    match /workouts/{workoutId} {
+      allow read: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+      allow write: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+    }
+    
+    match /coach_assignments/{assignmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isCoach();
     }
   }
 }

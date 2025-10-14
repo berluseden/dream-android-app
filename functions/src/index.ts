@@ -15,6 +15,24 @@ import * as admin from 'firebase-admin';
 
 admin.initializeApp();
 
+// Import admin functions
+export {
+  createUserWithRole,
+  sendInvitation,
+  setUserRole,
+  disableUser,
+  deleteUser,
+  resetUserPassword,
+  revokeInvitation,
+  assignCoach,
+} from './admin';
+
+// Import seed functions
+export { seedCatalogs } from './seed';
+
+// Import backup functions
+export { backupCollections, reindexComputedFields } from './backup';
+
 /**
  * Función: Ajuste Automático de Volumen Semanal
  * 
