@@ -7,7 +7,9 @@ service cloud.firestore {
     }
     
     function getUserRole() {
-      return get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role;
+      // Ahora usamos el userId como document ID directamente
+      let roleDoc = get(/databases/$(database)/documents/user_roles/$(request.auth.uid));
+      return roleDoc.data.role;
     }
     
     function isAdmin() {

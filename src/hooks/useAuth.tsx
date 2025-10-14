@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { UserProfile, UserRole } from '@/types/user.types';
 import { useToast } from '@/hooks/use-toast';
@@ -47,14 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchRole = async (uid: string): Promise<UserRole | null> => {
-    const rolesQuery = query(
-      collection(db, 'user_roles'),
-      where('user_id', '==', uid)
-    );
-    const rolesSnapshot = await getDocs(rolesQuery);
+    // Leer directamente usando userId como document ID
+    const roleDoc = await getDoc(doc(db, 'user_roles', uid));
     
-    if (!rolesSnapshot.empty) {
-      return rolesSnapshot.docs[0].data().role as UserRole;
+    if (roleDoc.exists()) {
+      return roleDoc.data().role as UserRole;
     }
     return null;
   };
@@ -80,6 +77,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         setProfile(userProfile);
         setRole(userRole);
+        
+        // Listener real-time para cambios de rol
+        const roleRef = doc(db, 'user_roles', firebaseUser.uid);
+        const unsubscribeRole = onSnapshot(roleRef, (roleDoc) => {
+          if (roleDoc.exists()) {
+            const newRole = roleDoc.data().role as UserRole;
+            if (newRole !== userRole) {
+              setRole(newRole);
+              toast({
+                title: "Tu rol ha sido actualizado",
+                description: `Ahora eres: ${newRole}`,
+              });
+            }
+          }
+        });
+        
+        return () => unsubscribeRole();
       } else {
         setProfile(null);
         setRole(null);
@@ -115,9 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updated_at: serverTimestamp(),
       });
       
-      // Assign default role
-      await setDoc(doc(collection(db, 'user_roles')), {
-        user_id: newUser.uid,
+      // Assign default role - usar userId como document ID
+      await setDoc(doc(db, 'user_roles', newUser.uid), {
         role: 'user',
       });
       
@@ -173,8 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           updated_at: serverTimestamp(),
         });
         
-        await setDoc(doc(collection(db, 'user_roles')), {
-          user_id: googleUser.uid,
+        await setDoc(doc(db, 'user_roles', googleUser.uid), {
           role: 'user',
         });
       }

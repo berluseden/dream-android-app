@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Settings as SettingsIcon, Bell, Moon, Ruler, Timer, TrendingUp, UserCog } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Moon, Ruler, Timer, TrendingUp, UserCog, RefreshCw } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useUserSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { Switch } from '@/components/ui/switch';
@@ -7,10 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
   const { data: settings } = useUserSettings();
   const updateSettings = useUpdateSettings();
+  const { refreshProfile } = useAuth();
+  const { toast } = useToast();
 
   const handleToggle = (key: string, value: boolean) => {
     updateSettings.mutate({ [key]: value });
@@ -18,6 +23,14 @@ export default function Settings() {
 
   const handleChange = (key: string, value: any) => {
     updateSettings.mutate({ [key]: value });
+  };
+
+  const handleRefreshProfile = async () => {
+    await refreshProfile();
+    toast({
+      title: "Perfil actualizado",
+      description: "Tu información se ha sincronizado correctamente",
+    });
   };
 
   if (!settings) {
@@ -221,6 +234,31 @@ export default function Settings() {
                   onCheckedChange={(v) => handleToggle('share_progress_with_coach', v)}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                Sincronización
+              </CardTitle>
+              <CardDescription>
+                Actualizar información del perfil y rol
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={handleRefreshProfile}
+                variant="outline"
+                className="w-full"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refrescar Perfil
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Usa esto si tu rol ha cambiado y no se refleja automáticamente
+              </p>
             </CardContent>
           </Card>
         </div>

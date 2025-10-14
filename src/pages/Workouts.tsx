@@ -42,6 +42,19 @@ export default function Workouts() {
     }
   };
 
+  const statusText = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completado ✓';
+      case 'in_progress':
+        return 'En Progreso ⏳';
+      case 'skipped':
+        return 'Saltado ✗';
+      default:
+        return 'Pendiente';
+    }
+  };
+
   const filteredWorkouts = selectedDate
     ? workouts.filter(w => {
         const wDate = new Date(w.planned_date);
@@ -74,7 +87,7 @@ export default function Workouts() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-6 space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Entrenamientos</h1>
           {activeMeso && (
@@ -148,8 +161,12 @@ export default function Workouts() {
                     </div>
                   </div>
                 ) : (
-                  filteredWorkouts.map((workout) => (
-                    <Card key={workout.id}>
+                  filteredWorkouts.map((workout, idx) => (
+                    <Card 
+                      key={workout.id}
+                      className="animate-scale-in hover-scale transition-all duration-200"
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
                       <CardContent className="pt-6">
                         <div className="flex items-start justify-between">
                           <div className="space-y-1 flex-1">
@@ -159,9 +176,7 @@ export default function Workouts() {
                                 Día {workout.day_index + 1}
                               </h3>
                               <Badge variant={statusColor(workout.status) as any}>
-                                {workout.status === 'completed' ? 'Completado' :
-                                 workout.status === 'in_progress' ? 'En Progreso' :
-                                 workout.status === 'skipped' ? 'Saltado' : 'Pendiente'}
+                                {statusText(workout.status)}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">

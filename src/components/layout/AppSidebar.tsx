@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/types/user.types';
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +26,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: Home, roles: ['admin', 'coach', 'user'] },
@@ -58,12 +61,31 @@ export function AppSidebar() {
 
   const collapsed = state === 'collapsed';
 
+  const getRoleBadgeVariant = (role: UserRole | null) => {
+    switch (role) {
+      case 'admin': return 'destructive';
+      case 'coach': return 'default';
+      default: return 'secondary';
+    }
+  };
+
+  const getRoleInitial = (role: UserRole | null) => {
+    switch (role) {
+      case 'admin': return 'A';
+      case 'coach': return 'C';
+      default: return 'U';
+    }
+  };
+
   return (
-    <Sidebar className={collapsed ? 'w-14' : 'w-60'} collapsible="icon">
+    <Sidebar className={cn(
+      'transition-all duration-200',
+      collapsed ? 'w-14' : 'w-60'
+    )} collapsible="icon">
       <SidebarContent>
         <div className="p-4 border-b">
-          {!collapsed && (
-            <div>
+          {!collapsed ? (
+            <div className="animate-fade-in">
               <h2 className="font-bold text-lg">App Hipertrofia</h2>
               {loading ? (
                 <>
@@ -73,8 +95,29 @@ export function AppSidebar() {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground">{profile?.name}</p>
-                  <Badge className="mt-1" variant="secondary">{role}</Badge>
+                  <Badge className="mt-1" variant={getRoleBadgeVariant(role)}>{role}</Badge>
                 </>
+              )}
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              {loading ? (
+                <Skeleton className="h-8 w-8 rounded-full" />
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge 
+                      variant={getRoleBadgeVariant(role)} 
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold"
+                    >
+                      {getRoleInitial(role)}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p className="font-medium">{profile?.name}</p>
+                    <p className="text-xs text-muted-foreground">{role}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           )}
@@ -95,17 +138,27 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 ))
               ) : (
-                // Menu real después de cargar
-                filteredItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <NavLink to={item.url} end={item.url === '/'}>
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))
+                // Menu real después de cargar con animación
+                <div className="animate-fade-in space-y-1">
+                  {filteredItems.map((item, idx) => (
+                    <SidebarMenuItem 
+                      key={item.title}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                      className="animate-fade-in"
+                    >
+                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                        <NavLink 
+                          to={item.url} 
+                          end={item.url === '/'}
+                          className="transition-all duration-200"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </div>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
