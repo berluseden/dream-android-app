@@ -169,7 +169,10 @@ export function useAddSet() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async (setData: Omit<Set, 'id' | 'created_at' | 'modified_by'> & { set_type?: 'warmup' | 'working' | 'dropset' | 'backoff' }) => {
+    mutationFn: async (setData: Omit<Set, 'id' | 'created_at' | 'modified_by'> & { 
+      set_type?: 'warmup' | 'working' | 'dropset' | 'backoff';
+      adjustment_reason?: string;
+    }) => {
       const finalSetData = {
         ...setData,
         set_type: setData.set_type || 'working',

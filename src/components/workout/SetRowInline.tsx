@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Check, Loader2, Calculator } from 'lucide-react';
+import { Check, Loader2, Calculator, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlateCalculator } from './PlateCalculator';
+import { AlgorithmExplanationDialog } from './AlgorithmExplanationDialog';
+import { calculateNextLoad } from '@/lib/algorithms';
 
 interface SetRowInlineProps {
   setNumber: number;
@@ -13,11 +15,19 @@ interface SetRowInlineProps {
   targetRir?: number;
   suggestedLoad?: number;
   suggestedReps?: number;
+  exerciseHistory?: Array<{ 
+    load: number; 
+    completed_reps: number; 
+    rir_actual: number;
+    rpe: number;
+    created_at: Date;
+  }>; // Last 3 sets for algorithm
   onComplete: (data: {
     load: number;
     reps: number;
     rir: number;
     rpe: number;
+    adjustment_reason?: string;
   }) => Promise<void>;
   isLoading?: boolean;
 }
@@ -29,6 +39,7 @@ export function SetRowInline({
   targetRir,
   suggestedLoad = 0,
   suggestedReps = 10,
+  exerciseHistory = [],
   onComplete,
   isLoading = false,
 }: SetRowInlineProps) {
@@ -37,10 +48,43 @@ export function SetRowInline({
   const [rir, setRir] = useState(targetRir || 2);
   const [rpe, setRpe] = useState(8);
   const [showPlateCalc, setShowPlateCalc] = useState(false);
+  const [showAlgoDialog, setShowAlgoDialog] = useState(false);
+  const [loadSuggestion, setLoadSuggestion] = useState<any>(null);
+  const [selectedAdjustment, setSelectedAdjustment] = useState<string>('');
+
+  const handleShowSuggestion = () => {
+    if (exerciseHistory.length > 0 && setType === 'working') {
+      const suggestion = calculateNextLoad(exerciseHistory, targetReps || 10);
+      setLoadSuggestion(suggestion);
+      setLoad(suggestion.load);
+      setReps(suggestion.reps);
+      setShowAlgoDialog(true);
+    }
+  };
+
+  const handleSelectOption = (option: 'primary' | 'alternative') => {
+    if (!loadSuggestion) return;
+    
+    if (option === 'alternative' && loadSuggestion.alternative) {
+      setLoad(loadSuggestion.alternative.load);
+      setReps(loadSuggestion.alternative.reps);
+      setSelectedAdjustment(loadSuggestion.alternative.reason);
+    } else {
+      setLoad(loadSuggestion.load);
+      setReps(loadSuggestion.reps);
+      setSelectedAdjustment(loadSuggestion.reason);
+    }
+  };
 
   const handleSubmit = async () => {
     if (load <= 0 || reps <= 0) return;
-    await onComplete({ load, reps, rir, rpe });
+    await onComplete({ 
+      load, 
+      reps, 
+      rir, 
+      rpe,
+      adjustment_reason: selectedAdjustment || undefined,
+    });
   };
 
   const isWarmup = setType === 'warmup';
@@ -86,7 +130,7 @@ export function SetRowInline({
           disabled={isLoading}
         />
 
-        {/* Load Input with Plate Calculator */}
+        {/* Load Input with Plate Calculator & Algorithm */}
         <div className="flex gap-1">
           <Input
             type="number"
@@ -100,6 +144,19 @@ export function SetRowInline({
             className="text-center"
             disabled={isLoading}
           />
+          {exerciseHistory.length > 0 && setType === 'working' && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleShowSuggestion}
+              disabled={isLoading}
+              className="h-10 w-10 shrink-0"
+              title="Ver sugerencia del algoritmo"
+            >
+              <Lightbulb className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -156,6 +213,16 @@ export function SetRowInline({
         currentLoad={load}
         onApply={setLoad}
       />
+
+      {/* Algorithm Explanation Dialog */}
+      {loadSuggestion && (
+        <AlgorithmExplanationDialog
+          open={showAlgoDialog}
+          onOpenChange={setShowAlgoDialog}
+          suggestion={loadSuggestion}
+          onSelectOption={handleSelectOption}
+        />
+      )}
     </>
   );
 }

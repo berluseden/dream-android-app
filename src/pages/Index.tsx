@@ -27,7 +27,8 @@ import {
   AlertTriangle,
   TrendingDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Lightbulb
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -36,6 +37,10 @@ import { useTodayWorkout } from '@/hooks/useWorkouts';
 import { useWeeklyVolume, useAdherence, useVolumeByMuscle } from '@/hooks/useStats';
 import { useStrengthProfile } from '@/hooks/useStrengthProfile';
 import { useExercises } from '@/hooks/useExercises';
+import { useRecentAdjustments } from '@/hooks/useRecentAdjustments';
+import { useWeeklySummary } from '@/hooks/useWeeklySummary';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -51,7 +56,7 @@ import {
 } from 'recharts';
 
 const Index = () => {
-  const { profile, role, isAdmin } = useAuth();
+  const { profile, role, isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [seeding, setSeeding] = useState(false);
   const { toast } = useToast();
@@ -63,6 +68,10 @@ const Index = () => {
   const { data: weeklyTargets } = useWeeklyTargets(activeMesocycle?.id || '');
   const { data: volumeByMuscle } = useVolumeByMuscle(undefined, 1); // Current week
   const { data: exercises } = useExercises();
+  
+  // New hooks for Sprint 1
+  const { data: recentAdjustments } = useRecentAdjustments(user?.uid || '', 5);
+  const { data: weeklySummary } = useWeeklySummary(user?.uid || '');
 
   // Calculate current week number
   const currentWeek = useMemo(() => {
@@ -435,6 +444,130 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* NEW: Weekly KPIs Summary */}
+            {weeklySummary && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Resumen Semanal (KPIs)
+                  </CardTitle>
+                  <CardDescription>
+                    Últimos 7 días
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Adherencia */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Target className="h-4 w-4" />
+                        <span>Adherencia</span>
+                      </div>
+                      <div className={`text-2xl font-bold ${
+                        weeklySummary.adherence >= 90 ? 'text-success' :
+                        weeklySummary.adherence >= 70 ? 'text-warning' :
+                        'text-destructive'
+                      }`}>
+                        {weeklySummary.adherence}%
+                      </div>
+                    </div>
+
+                    {/* Volumen Total */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Flame className="h-4 w-4" />
+                        <span>Volumen</span>
+                      </div>
+                      <div className="text-2xl font-bold text-primary">
+                        {weeklySummary.totalVolume} sets
+                      </div>
+                    </div>
+
+                    {/* Fatiga Promedio */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Moon className="h-4 w-4" />
+                        <span>RIR Promedio</span>
+                      </div>
+                      <div className={`text-2xl font-bold ${
+                        weeklySummary.avgFatigue <= 1 ? 'text-destructive' :
+                        weeklySummary.avgFatigue <= 2 ? 'text-warning' :
+                        'text-success'
+                      }`}>
+                        {weeklySummary.avgFatigue}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {weeklySummary.avgFatigue <= 1 ? 'Fatiga Alta' :
+                         weeklySummary.avgFatigue <= 2 ? 'Fatiga Moderada' :
+                         'Fatiga Baja'}
+                      </p>
+                    </div>
+
+                    {/* Cambio e1RM */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>Δ e1RM</span>
+                      </div>
+                      <div className={`text-2xl font-bold flex items-center gap-1 ${
+                        weeklySummary.e1rmChange > 0 ? 'text-success' :
+                        weeklySummary.e1rmChange < 0 ? 'text-destructive' :
+                        'text-muted-foreground'
+                      }`}>
+                        {weeklySummary.e1rmChange > 0 && <ArrowUp className="h-5 w-5" />}
+                        {weeklySummary.e1rmChange < 0 && <ArrowDown className="h-5 w-5" />}
+                        {weeklySummary.e1rmChange > 0 ? '+' : ''}{weeklySummary.e1rmChange}%
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* NEW: Recent Load Adjustments */}
+            {recentAdjustments && recentAdjustments.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                    Ajustes Recientes de Carga
+                  </CardTitle>
+                  <CardDescription>
+                    Últimos {recentAdjustments.length} ajustes automáticos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {recentAdjustments.map((adjustment) => (
+                      <div 
+                        key={adjustment.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{adjustment.exercise_name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {adjustment.load}kg × {adjustment.reps}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {adjustment.adjustment_reason}
+                          </p>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(adjustment.created_at, { 
+                            addSuffix: true,
+                            locale: es 
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : null}
 

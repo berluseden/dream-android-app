@@ -9,14 +9,16 @@ import { ClientPRsList } from '@/components/coach/ClientPRsList';
 import { PublishChangesDialog } from '@/components/coach/PublishChangesDialog';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { ArrowLeft, Settings, TrendingUp, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Settings, TrendingUp, AlertCircle, Flame, Target } from 'lucide-react';
 import { useActiveMesocycle } from '@/hooks/useMesocycles';
+import { useClientKPIs } from '@/hooks/useClientKPIs';
 
 export default function ClientDashboard() {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const { data: activeMesocycle } = useActiveMesocycle(clientId || '');
+  const { data: clientKPIs } = useClientKPIs(clientId || '', 4);
 
   if (!clientId) {
     return null;
@@ -55,20 +57,29 @@ export default function ClientDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Adherencia 4 sem</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">---%</div>
+              <div className={`text-2xl font-bold ${
+                !clientKPIs ? 'text-muted-foreground' :
+                clientKPIs.adherence >= 90 ? 'text-success' :
+                clientKPIs.adherence >= 70 ? 'text-warning' :
+                'text-destructive'
+              }`}>
+                {clientKPIs ? `${clientKPIs.adherence}%` : '---'}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Volumen Semanal</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <Flame className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--- sets</div>
+              <div className="text-2xl font-bold text-primary">
+                {clientKPIs ? `${clientKPIs.weeklyVolume} sets` : '--- sets'}
+              </div>
             </CardContent>
           </Card>
 
@@ -78,7 +89,14 @@ export default function ClientDashboard() {
               <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
+              <div className={`text-2xl font-bold ${
+                !clientKPIs ? 'text-muted-foreground' :
+                clientKPIs.fatigueAlerts === 0 ? 'text-success' :
+                clientKPIs.fatigueAlerts <= 3 ? 'text-warning' :
+                'text-destructive'
+              }`}>
+                {clientKPIs ? clientKPIs.fatigueAlerts : '--'}
+              </div>
             </CardContent>
           </Card>
 
@@ -88,7 +106,9 @@ export default function ClientDashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">--</div>
+              <div className="text-2xl font-bold text-primary">
+                {clientKPIs ? clientKPIs.recentPRs : '--'}
+              </div>
             </CardContent>
           </Card>
         </div>

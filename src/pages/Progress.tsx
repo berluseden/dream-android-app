@@ -1,16 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, TrendingUp, Target } from 'lucide-react';
+import { BarChart3, TrendingUp, Target, Activity } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useWeeklyVolume, useAdherence, useStrengthProgression, useVolumeByMuscle } from '@/hooks/useStats';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useRIRDistribution } from '@/hooks/useRIRDistribution';
+import { useAuth } from '@/hooks/useAuth';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { MuscleVolumeTracker } from '@/components/progress/MuscleVolumeTracker';
 
 export default function Progress() {
+  const { user } = useAuth();
   const { data: weeklyVolume = 0 } = useWeeklyVolume();
   const { data: adherence = 0 } = useAdherence();
   const { data: strengthData = [] } = useStrengthProgression();
   const { data: volumeByMuscle = {} } = useVolumeByMuscle();
+  const { data: rirDistribution = [] } = useRIRDistribution(user?.uid || '', 4);
 
   // Mock weekly volume data (últimas 8 semanas)
   const weeklyVolumeData = Array.from({ length: 8 }, (_, i) => ({
@@ -75,6 +79,7 @@ export default function Progress() {
             <TabsTrigger value="volume">Volumen</TabsTrigger>
             <TabsTrigger value="strength">Fuerza</TabsTrigger>
             <TabsTrigger value="muscles">Por Músculo</TabsTrigger>
+            <TabsTrigger value="rir">Distribución RIR</TabsTrigger>
             <TabsTrigger value="analysis">Análisis</TabsTrigger>
           </TabsList>
           
@@ -134,6 +139,82 @@ export default function Progress() {
                     <Bar dataKey="sets" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* NEW: RIR Distribution Tab */}
+          <TabsContent value="rir" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-primary" />
+                  Distribución de Esfuerzo (RIR)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={rirDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="rir" 
+                      stroke="hsl(var(--muted-foreground))"
+                      label={{ value: 'RIR', position: 'insideBottom', offset: -5 }}
+                    />
+                    <YAxis 
+                      stroke="hsl(var(--muted-foreground))"
+                      label={{ value: 'Sets', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                      formatter={(value: number, name: string, props: any) => {
+                        const item = rirDistribution.find(d => d.rir === props.payload.rir);
+                        return [
+                          `${value} sets (${item?.percentage || 0}%)`,
+                          `RIR ${props.payload.rir}`
+                        ];
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                      {rirDistribution.map((entry, index) => {
+                        // Color by RIR: 0-1 = red, 2 = yellow, 3-4 = green
+                        const color = entry.rir <= 1 ? 'hsl(var(--destructive))' :
+                                      entry.rir === 2 ? 'hsl(var(--warning))' :
+                                      'hsl(var(--success))';
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">RIR 0-1</div>
+                    <div className="text-lg font-bold text-destructive">
+                      {rirDistribution.filter(d => d.rir <= 1).reduce((sum, d) => sum + d.count, 0)} sets
+                    </div>
+                    <div className="text-xs text-muted-foreground">Alta intensidad</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">RIR 2</div>
+                    <div className="text-lg font-bold text-warning">
+                      {rirDistribution.find(d => d.rir === 2)?.count || 0} sets
+                    </div>
+                    <div className="text-xs text-muted-foreground">Moderado</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">RIR 3-4</div>
+                    <div className="text-lg font-bold text-success">
+                      {rirDistribution.filter(d => d.rir >= 3).reduce((sum, d) => sum + d.count, 0)} sets
+                    </div>
+                    <div className="text-xs text-muted-foreground">Conservador</div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
