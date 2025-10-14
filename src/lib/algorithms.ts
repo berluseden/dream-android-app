@@ -12,6 +12,18 @@ export interface SetHistory {
   created_at: Date;
 }
 
+export interface LoadSuggestion {
+  load: number;
+  reps: number;
+  reason: string;
+  explanation?: string;
+  alternative?: {
+    load: number;
+    reps: number;
+    reason: string;
+  } | null;
+}
+
 /**
  * Calcula la carga sugerida para la próxima serie basándose en el historial
  * 
@@ -21,11 +33,7 @@ export interface SetHistory {
  * - Si RIR promedio ≥ 3: -10% carga
  * - Caso contrario: mantener
  */
-export function calculateNextLoad(history: SetHistory[], targetReps: number = 10): {
-  load: number;
-  reps: number;
-  reason: string;
-} {
+export function calculateNextLoad(history: SetHistory[], targetReps: number = 10): LoadSuggestion {
   if (history.length === 0) {
     return { 
       load: 0, 
@@ -63,6 +71,12 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
       load: lastLoad,
       reps: Math.min(targetReps + 1, 15),
       reason: 'Aumentar repeticiones',
+      explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)}. Mantén el peso y aumenta reps para acumular más volumen.`,
+      alternative: {
+        load: Math.round(lastLoad * 1.025),
+        reps: targetReps,
+        reason: 'Aumentar carga ligeramente (+2.5%)'
+      }
     };
   }
   
@@ -72,6 +86,12 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
       load: Math.round(lastLoad * 0.90),
       reps: targetReps,
       reason: 'Reducir carga: RIR alto',
+      explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)}, demasiado alto. Reduce peso para trabajar más cerca del fallo.`,
+      alternative: {
+        load: Math.round(lastLoad * 0.95),
+        reps: targetReps + 2,
+        reason: 'Reducción menor (-5%) con más reps'
+      }
     };
   }
   
@@ -79,6 +99,8 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
     load: lastLoad,
     reps: targetReps,
     reason: 'Mantener',
+    explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)}, en rango óptimo. Continúa con esta carga.`,
+    alternative: null
   };
 }
 
