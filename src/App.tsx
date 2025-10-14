@@ -21,6 +21,13 @@ import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminRoles from "./pages/admin/AdminRoles";
+import AdminCoaches from "./pages/admin/AdminCoaches";
+import AdminInvitations from "./pages/admin/AdminInvitations";
+import AdminCatalogs from "./pages/admin/AdminCatalogs";
+import AdminSeedMigrate from "./pages/admin/AdminSeedMigrate";
+import AdminAudit from "./pages/admin/AdminAudit";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,6 +142,13 @@ const App = () => (
             >
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="roles" element={<AdminRoles />} />
+              <Route path="coaches" element={<AdminCoaches />} />
+              <Route path="invitations" element={<AdminInvitations />} />
+              <Route path="catalogs" element={<AdminCatalogs />} />
+              <Route path="seed-migrate" element={<AdminSeedMigrate />} />
+              <Route path="audit" element={<AdminAudit />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
