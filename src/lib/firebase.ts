@@ -9,12 +9,13 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyCRqrK8oOYDafgmGqRHbso-_BpLozkDlsA",
+  authDomain: "fitness-dfbb4.firebaseapp.com",
+  projectId: "fitness-dfbb4",
+  storageBucket: "fitness-dfbb4.firebasestorage.app",
+  messagingSenderId: "437995448295",
+  appId: "1:437995448295:web:6d069d7d520ddbcd633f42",
+  measurementId: "G-KZ2X47WGG0"
 };
 
 export const app = initializeApp(firebaseConfig);
