@@ -162,7 +162,15 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
   try {
     const roleRef = db.collection('user_roles').doc(userId);
     const roleDoc = await roleRef.get();
+    
+    if (!roleDoc.exists) {
+      console.error('User role not found:', { userId, adminId });
+      throw new functions.https.HttpsError('not-found', 'El usuario no existe o no tiene un rol asignado');
+    }
+    
     const oldRole = roleDoc.data()?.role;
+    
+    console.log('Setting user role:', { userId, oldRole, newRole, adminId });
     
     await roleRef.set({
       id: userId,
@@ -172,6 +180,7 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
     
     // If promoting to coach, create coach profile
     if (newRole === 'coach' && oldRole !== 'coach') {
+      console.log('Creating coach profile for:', userId);
       await db.collection('coach_profiles').doc(userId).set({
         id: userId,
         specializations: [],
@@ -188,10 +197,30 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
       after: { role: newRole },
     });
     
+    console.log('User role updated successfully:', { userId, newRole });
+    
     return { success: true };
   } catch (error: any) {
-    console.error('Error setting user role:', error);
-    throw new functions.https.HttpsError('internal', error.message);
+    console.error('Error setting user role:', {
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+      userId,
+      newRole,
+      adminId
+    });
+    
+    if (error.code === 'permission-denied') {
+      throw new functions.https.HttpsError('permission-denied', 
+        'No tienes permisos para cambiar roles de usuario');
+    }
+    
+    if (error.code === 'not-found') {
+      throw error;
+    }
+    
+    throw new functions.https.HttpsError('internal', 
+      `Error al cambiar rol: ${error.message}`);
   }
 });
 

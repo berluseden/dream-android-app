@@ -90,10 +90,27 @@ export function useSetUserRole() {
       });
     },
     onError: (error: any) => {
+      console.error('Error updating user role:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        fullError: error
+      });
+      
+      let errorMessage = 'No se pudo actualizar el rol';
+      
+      if (error.code === 'permission-denied') {
+        errorMessage = 'No tienes permisos para cambiar roles';
+      } else if (error.code === 'not-found') {
+        errorMessage = 'El usuario no existe';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error.message || 'No se pudo actualizar el rol',
+        title: 'Error al cambiar rol',
+        description: errorMessage,
       });
     },
   });

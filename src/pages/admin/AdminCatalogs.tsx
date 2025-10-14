@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useExercises } from '@/hooks/useExercises';
+import { useExercises, useMuscles } from '@/hooks/useExercises';
 import { useTemplates } from '@/hooks/useTemplates';
 import {
   Table,
@@ -15,6 +16,15 @@ import { Badge } from '@/components/ui/badge';
 export default function AdminCatalogs() {
   const { data: exercises, isLoading: exercisesLoading } = useExercises();
   const { data: templates, isLoading: templatesLoading } = useTemplates();
+  const { data: muscles } = useMuscles();
+
+  const muscleMap = useMemo(() => {
+    if (!muscles) return {};
+    return muscles.reduce((acc, muscle) => {
+      acc[muscle.id] = muscle.display_name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [muscles]);
 
   return (
     <div className="space-y-6">
@@ -62,7 +72,9 @@ export default function AdminCatalogs() {
                       <TableRow key={exercise.id}>
                         <TableCell className="font-medium">{exercise.name}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{exercise.prime_muscle}</Badge>
+                          <Badge variant="outline">
+                            {muscleMap[exercise.prime_muscle] || exercise.prime_muscle}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           {exercise.equipment.map((eq, i) => (
