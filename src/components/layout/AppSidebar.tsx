@@ -42,9 +42,10 @@ export function AppSidebar() {
   const { profile, role, signOut } = useAuth();
   const location = useLocation();
 
-  const filteredItems = navItems.filter(item => 
-    role && item.roles.includes(role)
-  );
+  const filteredItems = navItems.filter(item => {
+    if (!role) return false;
+    return item.roles.includes(role);
+  });
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';

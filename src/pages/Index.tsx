@@ -254,28 +254,6 @@ const Index = () => {
           </Alert>
         )}
 
-
-        {/* old_quick_stats */}
-        {/* Calibration Alert */}
-        {!isLoadingProfile && !hasCompletedCalibration() && (
-          <Alert className="border-warning bg-warning-light">
-            <Activity className="h-4 w-4 text-warning" />
-            <AlertTitle className="text-warning-foreground">Calibra tu Fuerza Inicial</AlertTitle>
-            <AlertDescription className="text-warning-foreground/90">
-              Completa la calibración de 4 ejercicios clave para obtener recomendaciones de carga más precisas
-            </AlertDescription>
-            <Button
-              variant="default"
-              size="sm"
-              className="mt-3"
-              onClick={() => navigate('/onboarding/calibration')}
-            >
-              Comenzar Calibración
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Alert>
-        )}
-
         {/* Main Content - Mesocycle Analysis */}
         {activeMesocycle ? (
           <div className="space-y-6">
