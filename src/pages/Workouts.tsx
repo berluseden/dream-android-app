@@ -1,15 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar as CalendarIcon, Dumbbell, CheckCircle, Circle, XCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Dumbbell, CheckCircle, Circle, XCircle, Plus, Search } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useWorkouts } from '@/hooks/useWorkouts';
 import { useActiveMesocycle } from '@/hooks/useMesocycles';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export default function Workouts() {
   const { data: activeMeso } = useActiveMesocycle();
@@ -48,6 +49,29 @@ export default function Workouts() {
       })
     : workouts;
 
+  // Función para personalizar los días del calendario
+  const getDayContent = (day: Date) => {
+    const dayWorkouts = workouts.filter(w => 
+      isSameDay(new Date(w.planned_date), day)
+    );
+    
+    if (dayWorkouts.length === 0) return undefined;
+
+    const hasCompleted = dayWorkouts.some(w => w.status === 'completed');
+    const hasPending = dayWorkouts.some(w => w.status === 'pending');
+    const hasSkipped = dayWorkouts.some(w => w.status === 'skipped');
+
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+          {hasCompleted && <div className="h-1 w-1 rounded-full bg-success" />}
+          {hasPending && <div className="h-1 w-1 rounded-full bg-primary" />}
+          {hasSkipped && <div className="h-1 w-1 rounded-full bg-destructive" />}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto p-6 space-y-6">
@@ -75,6 +99,14 @@ export default function Workouts() {
                 onSelect={setSelectedDate}
                 locale={es}
                 className="rounded-md border"
+                modifiers={{
+                  hasWorkout: (day) => workouts.some(w => 
+                    isSameDay(new Date(w.planned_date), day)
+                  )
+                }}
+                modifiersClassNames={{
+                  hasWorkout: 'font-bold'
+                }}
               />
             </CardContent>
           </Card>
@@ -90,9 +122,31 @@ export default function Workouts() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {filteredWorkouts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No hay entrenamientos planificados para esta fecha
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-4">
+                    <div className="rounded-full bg-muted p-6">
+                      <Dumbbell className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-lg">
+                        No hay entrenamientos programados
+                      </h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        {selectedDate 
+                          ? `No tienes entrenamientos planificados para el ${format(selectedDate, 'PPP', { locale: es })}`
+                          : 'No tienes entrenamientos planificados'}
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                      <Button onClick={() => navigate('/programs/browse')} className="gap-2">
+                        <Search className="h-4 w-4" />
+                        Explorar Programas
+                      </Button>
+                      <Button onClick={() => navigate('/mesocycles/create')} variant="outline" className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Crear Mesociclo
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   filteredWorkouts.map((workout) => (
                     <Card key={workout.id}>
