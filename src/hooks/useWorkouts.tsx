@@ -34,6 +34,7 @@ export interface Set {
   workout_id: string;
   exercise_id: string;
   set_number: number;
+  set_type: 'warmup' | 'working' | 'dropset' | 'backoff';
   target_reps: number;
   rir_target: number;
   load: number;
@@ -43,6 +44,9 @@ export interface Set {
   perceived_pump: number;
   perceived_soreness: number;
   notes: string;
+  rest_seconds?: number;
+  tempo?: string;
+  technique?: string;
   created_at: Date;
   modified_by: string;
 }
@@ -165,11 +169,15 @@ export function useAddSet() {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: async (setData: Omit<Set, 'id' | 'created_at' | 'modified_by'>) => {
+    mutationFn: async (setData: Omit<Set, 'id' | 'created_at' | 'modified_by'> & { set_type?: 'warmup' | 'working' | 'dropset' | 'backoff' }) => {
+      const finalSetData = {
+        ...setData,
+        set_type: setData.set_type || 'working',
+      };
       // Create set
       const setRef = doc(collection(db, 'sets'));
       await setDoc(setRef, {
-        ...setData,
+        ...finalSetData,
         created_at: serverTimestamp(),
         modified_by: user?.uid || '',
       });

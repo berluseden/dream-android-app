@@ -1,37 +1,41 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { useTodayWorkout, useWorkoutSets, useCompleteWorkout } from '@/hooks/useWorkouts';
+import { Card, CardContent } from '@/components/ui/card';
+import { useTodayWorkout, useWorkoutSets, useCompleteWorkout, useAddSet } from '@/hooks/useWorkouts';
 import { useExercises } from '@/hooks/useExercises';
-import { AddSetDialog } from '@/components/workout/AddSetDialog';
-import { Loader2, Dumbbell, Check, Timer } from 'lucide-react';
-import { calculateNextLoad, calculateE1RMWithRIR } from '@/lib/algorithms';
-import { useState as useStateTimer, useEffect } from 'react';
+import { useAddExerciseFeedback } from '@/hooks/useExerciseFeedback';
+import { WorkoutHeader } from '@/components/workout/WorkoutHeader';
+import { ExerciseThumbnailCarousel } from '@/components/workout/ExerciseThumbnailCarousel';
+import { ExerciseCard } from '@/components/workout/ExerciseCard';
+import { FeedbackDialog } from '@/components/workout/FeedbackDialog';
+import { RestTimer } from '@/components/workout/RestTimer';
+import { Loader2, Dumbbell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function TodayWorkout() {
+  const navigate = useNavigate();
   const { data: workout, isLoading } = useTodayWorkout();
   const { data: allSets } = useWorkoutSets(workout?.id || '');
   const { data: exercises } = useExercises();
   const completeWorkout = useCompleteWorkout();
+  const addSet = useAddSet();
+  const addFeedback = useAddExerciseFeedback();
   
   const [startTime, setStartTime] = useState<Date | null>(null);
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    if (!startTime) return;
-    
-    const interval = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startTime.getTime()) / 1000));
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [startTime]);
+  const [activeExerciseId, setActiveExerciseId] = useState<string>('');
+  const [feedbackDialog, setFeedbackDialog] = useState<{
+    open: boolean;
+    exerciseId: string;
+    exerciseName: string;
+    muscleName: string;
+  }>({ open: false, exerciseId: '', exerciseName: '', muscleName: '' });
+  const [showRestTimer, setShowRestTimer] = useState(false);
 
   const handleStart = () => {
     setStartTime(new Date());
+    if (exercises && exercises.length > 0) {
+      setActiveExerciseId(exercises[0].id);
+    }
   };
 
   const handleComplete = async () => {
@@ -39,6 +43,76 @@ export default function TodayWorkout() {
     
     const duration = Math.floor((Date.now() - startTime.getTime()) / 60000);
     await completeWorkout.mutateAsync({ workoutId: workout.id, duration });
+  };
+
+  const handleCancel = () => {
+    navigate('/');
+  };
+
+  const handleAddSet = async (
+    exerciseId: string,
+    data: {
+      load: number;
+      reps: number;
+      rir: number;
+      rpe: number;
+      setType: 'warmup' | 'working';
+    }
+  ) => {
+    if (!workout) return;
+
+    const exerciseSets = allSets?.filter(s => s.exercise_id === exerciseId) || [];
+    const setNumber = exerciseSets.length + 1;
+
+    await addSet.mutateAsync({
+      workout_id: workout.id,
+      exercise_id: exerciseId,
+      set_number: setNumber,
+      set_type: data.setType,
+      target_reps: 10,
+      rir_target: 2,
+      load: data.load,
+      completed_reps: data.reps,
+      rir_actual: data.rir,
+      rpe: data.rpe,
+      perceived_pump: 5,
+      perceived_soreness: 5,
+      notes: '',
+    });
+
+    if (data.setType === 'working') {
+      setShowRestTimer(true);
+    }
+  };
+
+  const handleExerciseComplete = (exerciseId: string, exerciseName: string, muscleName: string) => {
+    setFeedbackDialog({
+      open: true,
+      exerciseId,
+      exerciseName,
+      muscleName,
+    });
+  };
+
+  const handleFeedbackSubmit = async (feedback: {
+    muscle_soreness: 'never_sore' | 'healed_while_ago' | 'just_on_time' | 'still_sore';
+    pump_quality: 'low' | 'moderate' | 'amazing';
+    workload_feeling: 'easy' | 'pretty_good' | 'pushed_limits' | 'too_much';
+    notes?: string;
+  }) => {
+    if (!workout) return;
+
+    await addFeedback.mutateAsync({
+      workout_id: workout.id,
+      exercise_id: feedbackDialog.exerciseId,
+      ...feedback,
+    });
+
+    // Move to next exercise
+    const currentIndex = exercises?.findIndex(e => e.id === feedbackDialog.exerciseId);
+    if (currentIndex !== undefined && currentIndex < (exercises?.length || 0) - 1) {
+      setActiveExerciseId(exercises![currentIndex + 1].id);
+    }
   };
 
   if (isLoading) {
@@ -67,139 +141,82 @@ export default function TodayWorkout() {
     );
   }
 
-  // Group sets by exercise
-  const exerciseGroups = exercises?.reduce((acc, exercise) => {
-    const sets = allSets?.filter(s => s.exercise_id === exercise.id) || [];
-    if (sets.length > 0 || true) { // Show all exercises
-      acc[exercise.id] = { exercise, sets };
-    }
-    return acc;
-  }, {} as Record<string, { exercise: any; sets: any[] }>) || {};
+  // Prepare exercise thumbnails
+  const exerciseThumbnails = exercises?.map(ex => {
+    const sets = allSets?.filter(s => s.exercise_id === ex.id) || [];
+    const workingSets = sets.filter(s => s.set_type === 'working');
+    return {
+      id: ex.id,
+      name: ex.name,
+      completedSets: workingSets.length,
+      totalSets: 3, // default target
+      muscleGroup: ex.prime_muscle,
+    };
+  }) || [];
 
-  const totalSets = allSets?.length || 0;
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const totalSets = allSets?.filter(s => s.set_type === 'working').length || 0;
+  const targetTotalSets = (exercises?.length || 0) * 3;
 
   return (
     <AppLayout>
       <div className="container mx-auto p-6 space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Entrenamiento de Hoy</CardTitle>
-                <Badge className="mt-2">{workout.status}</Badge>
-              </div>
-              
-              {startTime && (
-                <div className="text-right">
-                  <div className="flex items-center gap-2 text-2xl font-bold">
-                    <Timer className="h-6 w-6" />
-                    {formatTime(elapsed)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">Duración</p>
-                </div>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="text-sm text-muted-foreground">Series completadas</p>
-                <p className="text-2xl font-bold">{totalSets}</p>
-              </div>
-              
-              {!startTime ? (
-                <Button onClick={handleStart} size="lg">
-                  Iniciar Entrenamiento
-                </Button>
-              ) : workout.status !== 'completed' ? (
-                <Button onClick={handleComplete} size="lg" variant="default">
-                  <Check className="mr-2 h-4 w-4" />
-                  Finalizar Entrenamiento
-                </Button>
-              ) : (
-                <Badge variant="default" className="text-lg px-4 py-2">
-                  <Check className="mr-2 h-5 w-5" />
-                  Completado
-                </Badge>
-              )}
-            </div>
+        <WorkoutHeader
+          workoutTitle="Entrenamiento de Hoy"
+          weekDay={new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}
+          startTime={startTime}
+          onStart={handleStart}
+          onFinish={handleComplete}
+          onCancel={handleCancel}
+          totalSets={targetTotalSets}
+          completedSets={totalSets}
+          isCompleted={workout.status === 'completed'}
+        />
 
-            <Accordion type="single" collapsible className="w-full">
-              {Object.values(exerciseGroups).map(({ exercise, sets }) => {
-                const history = sets.map(s => ({
-                  load: s.load,
-                  completed_reps: s.completed_reps,
-                  rir_actual: s.rir_actual,
-                  rpe: s.rpe,
-                  perceived_pump: s.perceived_pump,
-                  perceived_soreness: s.perceived_soreness,
-                  created_at: s.created_at,
-                }));
-                
-                const suggestion = calculateNextLoad(history);
-                const nextSetNumber = sets.length + 1;
+        {startTime && (
+          <>
+            <ExerciseThumbnailCarousel
+              exercises={exerciseThumbnails}
+              activeExerciseId={activeExerciseId}
+              onExerciseClick={setActiveExerciseId}
+            />
 
-                return (
-                  <AccordionItem key={exercise.id} value={exercise.id}>
-                    <AccordionTrigger>
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <span className="font-semibold">{exercise.name}</span>
-                        <Badge variant="secondary">{sets.length} sets</Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-4 pt-4">
-                        {sets.length > 0 && (
-                          <div className="space-y-2">
-                            {sets.map((set, idx) => (
-                              <div key={set.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <span className="font-medium">Set {set.set_number}</span>
-                                <div className="flex gap-4 text-sm">
-                                  <span>{set.load}kg × {set.completed_reps} reps</span>
-                                  <Badge variant="outline">RIR {set.rir_actual}</Badge>
-                                  <Badge variant="outline">RPE {set.rpe}</Badge>
-                                  <Badge variant="secondary">
-                                    e1RM: {calculateE1RMWithRIR(set.load, set.completed_reps, set.rir_actual)}kg
-                                  </Badge>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+            {showRestTimer && (
+              <RestTimer
+                targetSeconds={180}
+                onComplete={() => setShowRestTimer(false)}
+                onSkip={() => setShowRestTimer(false)}
+              />
+            )}
+          </>
+        )}
 
-                        {startTime && workout.status !== 'completed' && (
-                          <div className="space-y-2">
-                            {suggestion.load > 0 && (
-                              <div className="p-3 bg-muted rounded-lg">
-                                <p className="text-sm font-medium mb-1">Sugerencia próxima serie:</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {suggestion.load}kg × {suggestion.reps} reps - {suggestion.reason}
-                                </p>
-                              </div>
-                            )}
-                            
-                            <AddSetDialog
-                              workoutId={workout.id}
-                              exercise={exercise}
-                              setNumber={nextSetNumber}
-                              suggestedLoad={suggestion.load || 20}
-                              suggestedReps={suggestion.reps}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {exercises?.map((exercise) => {
+            const sets = allSets?.filter(s => s.exercise_id === exercise.id) || [];
+            const isActive = exercise.id === activeExerciseId;
+            
+            return (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                sets={sets}
+                workoutId={workout.id}
+                isActive={isActive}
+                canAddSets={!!startTime && workout.status !== 'completed'}
+                onAddSet={(data) => handleAddSet(exercise.id, data)}
+                onExerciseComplete={() => handleExerciseComplete(exercise.id, exercise.name, exercise.prime_muscle)}
+              />
+            );
+          })}
+        </div>
+
+        <FeedbackDialog
+          open={feedbackDialog.open}
+          onOpenChange={(open) => setFeedbackDialog(prev => ({ ...prev, open }))}
+          exerciseName={feedbackDialog.exerciseName}
+          muscleName={feedbackDialog.muscleName}
+          onSubmit={handleFeedbackSubmit}
+        />
       </div>
     </AppLayout>
   );

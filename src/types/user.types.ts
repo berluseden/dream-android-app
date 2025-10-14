@@ -42,9 +42,26 @@ export interface Exercise {
   secondary_muscles: string[];
   equipment: string[];
   video_url?: string;
+  thumbnail_url?: string;
+  muscle_diagram?: string;
   description: string;
   instructions: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty_level?: 1 | 2 | 3;
   is_compound: boolean;
   created_by: string | null;
+  default_rest_seconds?: number;
+  default_reps_min?: number;
+  default_reps_max?: number;
+}
+
+export interface ExerciseFeedback {
+  id: string;
+  workout_id: string;
+  exercise_id: string;
+  muscle_soreness: 'never_sore' | 'healed_while_ago' | 'just_on_time' | 'still_sore';
+  pump_quality: 'low' | 'moderate' | 'amazing';
+  workload_feeling: 'easy' | 'pretty_good' | 'pushed_limits' | 'too_much';
+  notes?: string;
+  created_at: Date;
 }

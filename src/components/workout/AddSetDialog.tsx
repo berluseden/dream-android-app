@@ -35,6 +35,7 @@ export function AddSetDialog({ workoutId, exercise, setNumber, suggestedLoad = 0
       workout_id: workoutId,
       exercise_id: exercise.id,
       set_number: setNumber,
+      set_type: 'working',
       target_reps: targetReps,
       rir_target: 2,
       load,
