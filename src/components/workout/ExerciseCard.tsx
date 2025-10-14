@@ -42,9 +42,20 @@ export function ExerciseCard({
 }: ExerciseCardProps) {
   const [showWarmups, setShowWarmups] = useState(false);
   const [warmupsCompleted, setWarmupsCompleted] = useState(false);
+  const [supersetGroupId, setSupersetGroupId] = useState<string | null>(null);
   
   const workingSets = sets.filter(s => s.set_type === 'working');
   const warmupSets = sets.filter(s => s.set_type === 'warmup');
+
+  // Group sets by superset_group_id
+  const supersetGroups = new Map<string, Set[]>();
+  workingSets.forEach(set => {
+    if (set.superset_group_id) {
+      const group = supersetGroups.get(set.superset_group_id) || [];
+      group.push(set);
+      supersetGroups.set(set.superset_group_id, group);
+    }
+  });
 
   const history = workingSets.map(s => ({
     load: s.load,

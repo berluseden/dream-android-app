@@ -53,9 +53,9 @@ export function ProgramFilters({ filters, onFiltersChange }: ProgramFiltersProps
       <div className="space-y-3">
         <Label className="text-sm font-medium">Nivel</Label>
         {[
-          { value: 'beginner', label: 'Principiante' },
-          { value: 'intermediate', label: 'Intermedio' },
-          { value: 'advanced', label: 'Avanzado' },
+          { value: 'novato', label: 'Novato' },
+          { value: 'intermedio', label: 'Intermedio' },
+          { value: 'avanzado', label: 'Avanzado' },
         ].map((level) => (
           <div key={level.value} className="flex items-center space-x-2">
             <Checkbox
@@ -78,6 +78,7 @@ export function ProgramFilters({ filters, onFiltersChange }: ProgramFiltersProps
           { value: 'dumbbells', label: 'Mancuernas' },
           { value: 'machines', label: 'Máquinas' },
           { value: 'bodyweight', label: 'Peso corporal' },
+          { value: 'cables', label: 'Poleas' },
         ].map((eq) => (
           <div key={eq.value} className="flex items-center space-x-2">
             <Checkbox

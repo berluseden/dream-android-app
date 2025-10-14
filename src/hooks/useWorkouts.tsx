@@ -47,6 +47,7 @@ export interface Set {
   rest_seconds?: number;
   tempo?: string;
   technique?: string;
+  superset_group_id?: string; // NEW: Sprint 2 - Supersets
   created_at: Date;
   modified_by: string;
 }

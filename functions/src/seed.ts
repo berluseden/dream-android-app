@@ -287,15 +287,68 @@ async function seedTemplates(adminId: string) {
     volume_limits: { sets_min: 10, sets_target: 14, sets_max: 22 }
   };
 
-  const templates = [gbrTemplate, phulTemplate, phatTemplate];
+  // NEW Sprint 2: Additional Templates
   
-  for (const template of templates) {
+  // Bro Split 5D - Hipertrofia Clásica
+  const broSplitTemplate = {
+    id: 'BRO-SPLIT-5D',
+    name: 'Bro Split 5 Días',
+    description: 'Split clásico de culturismo. Cada día un grupo muscular principal.',
+    split: 'Chest/Back/Shoulders/Legs/Arms',
+    weeks: 6,
+    days_per_week: 5,
+    level: 'intermedio',
+    muscle_focus: ['chest', 'back', 'shoulders', 'quads'],
+    required_equipment: ['barbell', 'dumbbells', 'machines'],
+    focus: 'hypertrophy',
+    effort_scale: 'RIR',
+    sessions: [
+      { name: 'Pecho', blocks: [
+        { exercise_name: 'Press Banca', sets: 4, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+        { exercise_name: 'Aperturas con Mancuernas', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+      ]},
+      { name: 'Espalda', blocks: [
+        { exercise_name: 'Peso Muerto', sets: 4, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 180 },
+        { exercise_name: 'Dominadas', sets: 4, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 },
+      ]},
+    ],
+    volume_limits: { sets_min: 10, sets_target: 15, sets_max: 25 }
+  };
+
+  // Full Body 3D - Novatos
+  const fullBodyTemplate = {
+    id: 'FULL-BODY-3D',
+    name: 'Full Body 3 Días',
+    description: 'Ideal para principiantes. Entrena todos los grupos musculares 3 veces por semana.',
+    split: 'Full Body',
+    weeks: 6,
+    days_per_week: 3,
+    level: 'novato',
+    muscle_focus: ['chest', 'back', 'quads'],
+    required_equipment: ['barbell', 'dumbbells'],
+    focus: 'hypertrophy',
+    effort_scale: 'RIR',
+    sessions: [
+      { name: 'Día A', blocks: [
+        { exercise_name: 'Sentadilla', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 2, rest_seconds: 180 },
+        { exercise_name: 'Press Banca', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 2, rest_seconds: 120 },
+      ]},
+    ],
+    volume_limits: { sets_min: 6, sets_target: 10, sets_max: 15 }
+  };
+
+  const allTemplates = [gbrTemplate, phulTemplate, phatTemplate, broSplitTemplate, fullBodyTemplate];
+  
+  for (const template of allTemplates) {
     const snapshot = await db.collection('templates').where('id', '==', template.id).limit(1).get();
     
     if (snapshot.empty) {
       await db.collection('templates').add({
         ...template,
         created_by: adminId,
+        rating_avg: 0,
+        rating_count: 0,
+        times_used: 0,
         created_at: admin.firestore.FieldValue.serverTimestamp(),
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       });

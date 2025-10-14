@@ -103,6 +103,11 @@ export interface Template {
   created_by: string;
   created_at: Timestamp;
   updated_at: Timestamp;
+  // NEW: Sprint 2 fields
+  level?: 'novato' | 'intermedio' | 'avanzado';
+  muscle_focus?: string[]; // e.g., ['chest', 'back']
+  required_equipment?: string[]; // e.g., ['barbell', 'dumbbells']
+  focus?: 'strength' | 'hypertrophy' | 'powerbuilding';
 }
 
 export interface AdminMetrics {

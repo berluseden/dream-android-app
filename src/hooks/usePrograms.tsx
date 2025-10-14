@@ -19,6 +19,7 @@ export interface ProgramTemplate {
   days_per_week: number;
   level?: string;
   required_equipment?: string[];
+  muscle_focus?: string[]; // NEW
   focus?: string;
   rating_avg?: number;
   rating_count?: number;
