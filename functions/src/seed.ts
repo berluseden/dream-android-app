@@ -230,7 +230,7 @@ async function seedAdminSettings() {
     await settingsRef.set({
       id: 'global',
       feature_flags: {
-        allow_signup: true,
+        allow_signup: false, // No permitir registro público
         coach_can_create_exercises: true,
       },
       units_default: 'kg',
@@ -242,6 +242,68 @@ async function seedAdminSettings() {
   }
 }
 
+// Create default admin user
+async function createDefaultAdmin() {
+  const defaultAdminEmail = 'berluseden@gmail.com';
+  
+  try {
+    // Check if admin already exists in Auth
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(defaultAdminEmail);
+      console.log('Admin user already exists in Auth');
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        // Create admin user
+        userRecord = await admin.auth().createUser({
+          email: defaultAdminEmail,
+          password: 'Admin123!', // Password temporal - debe cambiarse
+          displayName: 'Administrador',
+          emailVerified: true,
+        });
+        console.log('Created admin user in Auth');
+      } else {
+        throw error;
+      }
+    }
+    
+    // Create user profile in Firestore
+    const userRef = db.collection('users').doc(userRecord.uid);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      await userRef.set({
+        id: userRecord.uid,
+        email: defaultAdminEmail,
+        name: 'Administrador',
+        created_at: admin.firestore.FieldValue.serverTimestamp(),
+        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      console.log('Created admin user profile');
+    }
+    
+    // Set admin role
+    const roleRef = db.collection('user_roles').doc(userRecord.uid);
+    const roleDoc = await roleRef.get();
+    
+    if (!roleDoc.exists) {
+      await roleRef.set({
+        user_id: userRecord.uid,
+        role: 'admin',
+        created_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      console.log('Set admin role');
+    }
+    
+    console.log(`Default admin created: ${defaultAdminEmail}`);
+    console.log('IMPORTANTE: Cambiar contraseña temporal "Admin123!"');
+    
+  } catch (error) {
+    console.error('Error creating default admin:', error);
+    throw error;
+  }
+}
+
 // Main seed function
 export const seedCatalogs = functions.https.onCall(async (data, context) => {
   const adminId = await requireAdmin(context);
@@ -249,6 +311,7 @@ export const seedCatalogs = functions.https.onCall(async (data, context) => {
   try {
     console.log('Starting seed process...');
     
+    await createDefaultAdmin();
     await seedMuscles();
     await seedExercises();
     await seedTemplates(adminId);
