@@ -1,73 +1,188 @@
-# Welcome to your Lovable project
+# App Hipertrofia - Sistema de Planificación de Entrenamientos
 
-## Project info
+## 🚀 Stack Tecnológico
 
-**URL**: https://lovable.dev/projects/e166b65b-9e48-4c77-887b-1fc631e90581
+- **Frontend**: React 18 + Vite + TypeScript
+- **UI**: TailwindCSS + Radix UI (shadcn)
+- **Backend**: Firebase (Auth, Firestore, Functions, Storage)
+- **Estado**: TanStack Query
+- **PWA**: vite-plugin-pwa
+- **Routing**: React Router v6
 
-## How can I edit this code?
+## 📋 Configuración Inicial
 
-There are several ways of editing your application.
+### 1. Crear Proyecto en Firebase Console
 
-**Use Lovable**
+1. Ir a [Firebase Console](https://console.firebase.google.com/)
+2. Crear nuevo proyecto: "app-hipertrofia"
+3. Habilitar servicios:
+   - ✅ Authentication (Email/Password + Google)
+   - ✅ Firestore Database (modo producción)
+   - ✅ Cloud Storage
+   - ✅ Firebase Functions (plan Blaze)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e166b65b-9e48-4c77-887b-1fc631e90581) and start prompting.
+### 2. Obtener Credenciales
 
-Changes made via Lovable will be committed automatically to this repo.
+1. En Firebase Console: **Project Settings → General → Your apps → Web app**
+2. Copiar las credenciales
+3. Crear archivo `.env` en la raíz del proyecto:
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```env
+VITE_FIREBASE_API_KEY=tu_api_key
+VITE_FIREBASE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=tu_proyecto_id
+VITE_FIREBASE_STORAGE_BUCKET=tu_proyecto.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
+VITE_FIREBASE_APP_ID=tu_app_id
 ```
 
-**Edit a file directly in GitHub**
+### 3. Desplegar Reglas de Seguridad
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Instalar Firebase CLI
+npm install -g firebase-tools
 
-**Use GitHub Codespaces**
+# Login
+firebase login
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Inicializar proyecto
+firebase init firestore
 
-## What technologies are used for this project?
+# Desplegar reglas
+firebase deploy --only firestore:rules,firestore:indexes
+```
 
-This project is built with:
+### 4. Seed de Datos Iniciales
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. Inicia sesión como usuario
+2. En Firebase Console, abre **Firestore Database**
+3. Ve a la colección `user_roles`
+4. Crea un documento con:
+   - `user_id`: tu user ID (cópialo de Authentication)
+   - `role`: "admin"
+5. Refresca la app y haz clic en "Ejecutar Seed de Datos Iniciales"
 
-## How can I deploy this project?
+## 🏗️ Arquitectura del Sistema
 
-Simply open [Lovable](https://lovable.dev/projects/e166b65b-9e48-4c77-887b-1fc631e90581) and click on Share -> Publish.
+### Modelo de Datos
 
-## Can I connect a custom domain to my Lovable project?
+```
+users/                  # Perfiles de usuarios
+user_roles/             # Roles separados (seguridad)
+muscles/                # Catálogo de músculos
+exercises/              # Biblioteca de ejercicios
+mesocycles/             # Ciclos de entrenamiento
+weekly_targets/         # Objetivos semanales de volumen
+workouts/               # Sesiones de entrenamiento
+sets/                   # Registro de series
+messages/               # Mensajería coach-cliente
+coach_assignments/      # Asignaciones coach-cliente
+```
 
-Yes, you can!
+### Roles y Permisos
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- **Admin**: Acceso completo, gestión de catálogos
+- **Coach**: Ver/editar clientes asignados, crear rutinas
+- **User**: Ver su plan, registrar entrenamientos
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🎯 Funcionalidades Implementadas
+
+### ✅ Fase 1: Infraestructura
+- Firebase configurado con persistencia offline
+- Autenticación con roles en tabla separada (seguridad)
+- Reglas de Firestore granulares por rol
+- Seed de músculos y ejercicios iniciales
+
+### ✅ Fase 2: Biblioteca de Ejercicios
+- Catálogo completo con filtros
+- Búsqueda por nombre, músculo, equipamiento
+- Vista detallada de ejercicios
+
+### ✅ Fase 3: Gestión Coach-Cliente
+- Panel de clientes para coaches
+- Sistema de asignación
+- Vista de progreso de clientes
+
+### ✅ Navegación y Layout
+- Sidebar responsive con colapso
+- Protección de rutas por rol
+- Navegación móvil con drawer
+
+### ✅ PWA
+- Service Worker configurado
+- Instalable en dispositivos
+- Caché de recursos
+- Funciona offline
+
+## 📱 Páginas Disponibles
+
+- `/` - Dashboard con métricas
+- `/exercises` - Biblioteca de ejercicios
+- `/coach/clients` - Panel de clientes (Coach/Admin)
+- `/workouts` - Entrenamientos programados
+- `/progress` - Gráficos de progreso
+- `/messages` - Mensajería
+- `/settings` - Configuración de perfil
+
+## 🔧 Próximas Fases
+
+### Fase 4-5: Planificación y Entrenamientos
+- Wizard de creación de mesociclos
+- Cálculo automático de volumen progresivo
+- Registro de series con RIR/RPE
+- Feedback de pump/soreness
+
+### Fase 6: Algoritmos de Autorregulación
+- Progresión automática de carga por ejercicio
+- Ajuste semanal de volumen por músculo
+- Detección de fatiga y recuperación
+
+### Fase 7: Dashboards Avanzados
+- Gráficos de volumen vs target
+- Tendencias de e1RM por ejercicio
+- Indicadores de fatiga por músculo
+- Análisis de adherencia
+
+### Fase 8-9: Mensajería e Historial
+- Chat en tiempo real coach-cliente
+- Historial completo de entrenamientos
+- Exportación PDF/CSV
+- Comparativas entre períodos
+
+## 🚀 Desarrollo
+
+```bash
+# Instalar dependencias
+npm install
+
+# Desarrollo
+npm run dev
+
+# Build
+npm run build
+
+# Preview
+npm run preview
+```
+
+## 📦 Despliegue
+
+La app está lista para desplegarse en:
+- Vercel
+- Netlify  
+- Firebase Hosting
+- Lovable: [Share → Publish](https://lovable.dev/projects/e166b65b-9e48-4c77-887b-1fc631e90581)
+
+## 🔒 Seguridad
+
+- Roles almacenados en tabla separada (no en client storage)
+- Validación server-side en Firestore Rules
+- Tokens JWT manejados por Firebase Auth
+- Persistencia offline segura con IndexedDB
+
+## 📚 Documentación
+
+- [Firebase Docs](https://firebase.google.com/docs)
+- [Firestore Security Rules](https://firebase.google.com/docs/firestore/security/get-started)
+- [React Query](https://tanstack.com/query/latest)
+- [Radix UI](https://www.radix-ui.com/)

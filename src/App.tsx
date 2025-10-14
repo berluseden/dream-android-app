@@ -7,6 +7,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
+import Exercises from "./pages/Exercises";
+import CoachClients from "./pages/coach/Clients";
+import Workouts from "./pages/Workouts";
+import Progress from "./pages/Progress";
+import Messages from "./pages/Messages";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 
@@ -35,6 +41,60 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/exercises"
+              element={
+                <ProtectedRoute>
+                  <Exercises />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/coach/clients"
+              element={
+                <ProtectedRoute allowedRoles={['coach', 'admin']}>
+                  <CoachClients />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/workouts"
+              element={
+                <ProtectedRoute>
+                  <Workouts />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/progress"
+              element={
+                <ProtectedRoute>
+                  <Progress />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
