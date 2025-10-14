@@ -16,6 +16,7 @@ import Workouts from "./pages/Workouts";
 import TodayWorkout from "./pages/TodayWorkout";
 import CreateMesocycle from "./pages/mesocycles/CreateMesocycle";
 import Progress from "./pages/Progress";
+import Yearly from "./pages/stats/Yearly";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import Calibration from "./pages/onboarding/Calibration";
@@ -110,6 +111,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Progress />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/stats/yearly"
+              element={
+                <ProtectedRoute>
+                  <Yearly />
                 </ProtectedRoute>
               }
             />

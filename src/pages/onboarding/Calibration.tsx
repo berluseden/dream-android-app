@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useStrengthProfile } from '@/hooks/useStrengthProfile';
+import { useActiveMesocycle } from '@/hooks/useMesocycles';
 import { MovementPattern } from '@/types/strength.types';
-import { ChevronRight, CheckCircle2, Info } from 'lucide-react';
+import { ChevronRight, CheckCircle2, Info, Plus, Download, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 const CALIBRATION_EXERCISES = [
   { pattern: 'squat' as MovementPattern, name: 'Sentadilla', description: 'Back Squat o Front Squat' },
@@ -21,38 +23,97 @@ const CALIBRATION_EXERCISES = [
 
 export default function Calibration() {
   const navigate = useNavigate();
-  const { saveCalibration } = useStrengthProfile();
+  const { toast } = useToast();
+  const { saveCalibration, profiles } = useStrengthProfile();
+  const { data: activeMesocycle } = useActiveMesocycle();
   const [currentStep, setCurrentStep] = useState(0);
   const [calibrations, setCalibrations] = useState<{
-    [key in MovementPattern]?: { load: number; reps: number; rir: number };
+    [key in MovementPattern]?: Array<{ load: number; reps: number; rir: number }>;
   }>({});
 
   const [formData, setFormData] = useState({ load: 0, reps: 8, rir: 1 });
+  const [setsForCurrentExercise, setSetsForCurrentExercise] = useState<
+    Array<{ load: number; reps: number; rir: number }>
+  >([]);
+
+  // NEW: Import previous weights from last mesocycle
+  const handleImportPreviousWeights = () => {
+    if (!activeMesocycle) {
+      toast({
+        title: 'Sin mesociclo activo',
+        description: 'No hay pesos previos para importar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // TODO: Query last sets from previous mesocycle and populate formData
+    toast({
+      title: 'Función en desarrollo',
+      description: 'Pronto podrás importar tus últimas cargas',
+    });
+  };
 
   const currentExercise = CALIBRATION_EXERCISES[currentStep];
   const progress = ((currentStep + 1) / CALIBRATION_EXERCISES.length) * 100;
 
-  const handleNext = async () => {
+  // NEW: Handle adding multiple sets
+  const handleAddSet = () => {
     if (formData.load <= 0 || formData.reps <= 0) return;
 
-    // Save current calibration
+    setSetsForCurrentExercise(prev => [...prev, formData]);
+    setFormData({ load: 0, reps: 8, rir: 1 });
+    
+    toast({
+      title: 'Set agregado',
+      description: `${formData.load}kg × ${formData.reps} reps @RIR ${formData.rir}`,
+    });
+  };
+
+  const handleNext = async () => {
+    // Must have at least 1 set
+    if (setsForCurrentExercise.length === 0 && (formData.load <= 0 || formData.reps <= 0)) {
+      toast({
+        title: 'Error',
+        description: 'Debes registrar al menos un set',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Add current formData if not empty
+    const allSets = formData.load > 0 
+      ? [...setsForCurrentExercise, formData]
+      : setsForCurrentExercise;
+
+    // Calculate average e1RM from all sets
+    const avgLoad = allSets.reduce((sum, s) => sum + s.load, 0) / allSets.length;
+    const avgReps = Math.round(allSets.reduce((sum, s) => sum + s.reps, 0) / allSets.length);
+    const avgRir = Math.round(allSets.reduce((sum, s) => sum + s.rir, 0) / allSets.length);
+
+    // Save calibration with average values
     await saveCalibration.mutateAsync({
       pattern: currentExercise.pattern,
-      load: formData.load,
-      reps: formData.reps,
-      rir: formData.rir,
+      load: avgLoad,
+      reps: avgReps,
+      rir: avgRir,
     });
 
     setCalibrations(prev => ({
       ...prev,
-      [currentExercise.pattern]: formData,
+      [currentExercise.pattern]: allSets,
     }));
 
     if (currentStep < CALIBRATION_EXERCISES.length - 1) {
       setCurrentStep(prev => prev + 1);
       setFormData({ load: 0, reps: 8, rir: 1 });
+      setSetsForCurrentExercise([]);
     } else {
       // Completed all calibrations
+      toast({
+        title: '¡Calibración completada!',
+        description: 'Tus cargas iniciales han sido calculadas',
+      });
       navigate('/');
     }
   };
@@ -92,6 +153,28 @@ export default function Calibration() {
               Esto nos ayuda a estimar tus cargas de trabajo para cada ejercicio.
             </AlertDescription>
           </Alert>
+
+          {/* NEW: Import Previous Weights Button */}
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="font-medium">¿Ya has entrenado antes?</p>
+                  <p className="text-sm text-muted-foreground">
+                    Importa tus últimas cargas para ahorrar tiempo
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleImportPreviousWeights}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Importar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Calibration Card */}
           <Card>
@@ -158,6 +241,37 @@ export default function Calibration() {
                 </p>
               </div>
 
+              {/* NEW: Multiple Sets Section */}
+              {setsForCurrentExercise.length > 0 && (
+                <div className="pt-4 border-t space-y-2">
+                  <Label className="text-sm font-medium">Sets registrados ({setsForCurrentExercise.length}):</Label>
+                  <div className="space-y-1">
+                    {setsForCurrentExercise.map((set, idx) => (
+                      <div 
+                        key={idx}
+                        className="flex items-center gap-2 p-2 bg-muted rounded text-sm"
+                      >
+                        <Badge variant="outline">{idx + 1}</Badge>
+                        <span className="font-medium">{set.load}kg × {set.reps} reps</span>
+                        <span className="text-muted-foreground">@RIR {set.rir}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* NEW: Add Set Button */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddSet}
+                disabled={formData.load <= 0 || formData.reps <= 0}
+                className="w-full gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Agregar otro set (opcional)
+              </Button>
+
               {/* Completed Exercises */}
               {Object.keys(calibrations).length > 0 && (
                 <div className="pt-4 border-t space-y-2">
@@ -186,11 +300,23 @@ export default function Calibration() {
             </Button>
             <Button
               onClick={handleNext}
-              disabled={formData.load <= 0 || formData.reps <= 0 || saveCalibration.isPending}
+              disabled={
+                (setsForCurrentExercise.length === 0 && (formData.load <= 0 || formData.reps <= 0)) || 
+                saveCalibration.isPending
+              }
               className="flex-1"
             >
-              {currentStep === CALIBRATION_EXERCISES.length - 1 ? 'Finalizar' : 'Siguiente'}
-              <ChevronRight className="ml-2 h-4 w-4" />
+              {saveCalibration.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  {currentStep === CALIBRATION_EXERCISES.length - 1 ? 'Finalizar' : 'Siguiente'}
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </div>
