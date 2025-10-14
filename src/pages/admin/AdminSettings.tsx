@@ -82,7 +82,7 @@ export default function AdminSettings() {
               </p>
             </div>
             <Switch
-              checked={settings.feature_flags.allow_signup}
+              checked={settings.feature_flags?.allow_signup ?? false}
               onCheckedChange={(checked) =>
                 handleToggle('feature_flags', 'allow_signup', checked)
               }
@@ -97,7 +97,7 @@ export default function AdminSettings() {
               </p>
             </div>
             <Switch
-              checked={settings.feature_flags.coach_can_create_exercises}
+              checked={settings.feature_flags?.coach_can_create_exercises ?? false}
               onCheckedChange={(checked) =>
                 handleToggle('feature_flags', 'coach_can_create_exercises', checked)
               }
@@ -147,7 +147,7 @@ export default function AdminSettings() {
             </p>
             <Input
               type="number"
-              value={settings.write_limits.sets_per_minute}
+              value={settings.write_limits?.sets_per_minute ?? 10}
               onChange={(e) =>
                 handleNestedChange('write_limits', 'sets_per_minute', parseInt(e.target.value))
               }
