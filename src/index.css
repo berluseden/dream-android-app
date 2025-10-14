@@ -65,6 +65,12 @@
     --chart-4: 38 92% 50%;
     --chart-5: 340 82% 52%;
     
+    /* Safe areas para notch/island */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(262 83% 58%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(158 64% 52%) 100%);
@@ -271,5 +277,85 @@
   /* Stat card animation */
   .stat-card {
     @apply transition-all duration-200 hover:shadow-md hover:-translate-y-1;
+  }
+  
+  /* ===== OPTIMIZACIONES MÓVILES ===== */
+  
+  /* Safe screen con notch */
+  .safe-screen {
+    padding-top: max(1rem, var(--safe-top));
+    padding-bottom: max(1rem, var(--safe-bottom));
+    padding-left: max(1rem, var(--safe-left));
+    padding-right: max(1rem, var(--safe-right));
+  }
+  
+  /* Tap targets mínimo 44px (WCAG AAA) */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Fix 100vh en iOS */
+  .full-screen {
+    height: 100vh;
+    height: 100dvh;
+  }
+  
+  /* Touch optimization */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Evitar overscroll bounce en iOS */
+  .no-overscroll {
+    overscroll-behavior: contain;
+  }
+  
+  /* Active state móvil */
+  .touch-active:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+  
+  /* Swipe indicator visual */
+  .swipe-indicator {
+    position: relative;
+  }
+  
+  .swipe-indicator::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, 
+      hsl(var(--success) / 0) 0%, 
+      hsl(var(--success) / 0.1) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .swipe-indicator.swiping-right::before {
+    opacity: 1;
+  }
+  
+  /* Keyboard focus visible */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+/* Animaciones respetan reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

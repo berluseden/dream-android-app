@@ -22,7 +22,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* Mobile Header with Drawer */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 border-b bg-background flex items-center px-4">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 border-b bg-background flex items-center px-4" style={{ paddingTop: 'var(--safe-top)' }}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -37,7 +37,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 md:pt-0 pt-14">
+        <main className="flex-1 md:pt-0 pt-14 no-overscroll" style={{ paddingBottom: 'var(--safe-bottom)' }}>
           {children}
         </main>
       </div>

@@ -115,5 +115,9 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated();
     }
+    
+    match /offline_queue/{queueId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == resource.data.user_id;
+    }
   }
 }

@@ -76,6 +76,9 @@ export function SetRowInline({
         {/* Reps Input */}
         <Input
           type="number"
+          inputMode="decimal"
+          pattern="[0-9]*"
+          autoComplete="off"
           value={reps}
           onChange={(e) => setReps(parseInt(e.target.value) || 0)}
           placeholder="Reps"
@@ -87,6 +90,9 @@ export function SetRowInline({
         <div className="flex gap-1">
           <Input
             type="number"
+            inputMode="decimal"
+            pattern="[0-9.]*"
+            autoComplete="off"
             value={load}
             onChange={(e) => setLoad(parseFloat(e.target.value) || 0)}
             placeholder="kg"
