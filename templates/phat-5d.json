@@ -1,0 +1,68 @@
+{
+  "id": "PHAT-5D",
+  "name": "PHAT (Layne Norton) 5 días",
+  "description": "Power Hypertrophy Adaptive Training. 2 días de fuerza + 3 días de hipertrofia especializada por grupos musculares.",
+  "version": 1,
+  "weeks": 6,
+  "days_per_week": 5,
+  "split": "Power Upper/Lower + Hypertrophy Back-Shoulders/Lower/Chest-Arms",
+  "effort_scale": "RIR",
+  "sessions": [
+    {
+      "name": "Power Upper",
+      "blocks": [
+        { "exercise": "Press Banca", "sets": 3, "rep_range": [3, 5], "rir_target": 1, "rest_seconds": 240 },
+        { "exercise": "Remo con Barra", "sets": 3, "rep_range": [3, 5], "rir_target": 1, "rest_seconds": 240 },
+        { "exercise": "Press Militar", "sets": 2, "rep_range": [5, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Dominadas", "sets": 2, "rep_range": [5, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Curl con Barra", "sets": 2, "rep_range": [6, 10], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Fondos en Paralelas", "sets": 2, "rep_range": [6, 10], "rir_target": 1, "rest_seconds": 120 }
+      ]
+    },
+    {
+      "name": "Power Lower",
+      "blocks": [
+        { "exercise": "Sentadilla", "sets": 3, "rep_range": [3, 5], "rir_target": 1, "rest_seconds": 300 },
+        { "exercise": "Peso Muerto", "sets": 2, "rep_range": [3, 5], "rir_target": 1, "rest_seconds": 300 },
+        { "exercise": "Extensión de Cuádriceps", "sets": 2, "rep_range": [6, 10], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Elevación de Gemelos", "sets": 3, "rep_range": [8, 12], "rir_target": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Hypertrophy Back/Shoulders",
+      "blocks": [
+        { "exercise": "Jalón al Pecho", "sets": 3, "rep_range": [8, 12], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Jalón al Pecho", "sets": 3, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Remo con Barra", "sets": 3, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Elevaciones Laterales", "sets": 4, "rep_range": [12, 20], "rir_target": 1, "rest_seconds": 60 },
+        { "exercise": "Elevaciones Laterales", "sets": 3, "rep_range": [12, 20], "rir_target": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Hypertrophy Lower",
+      "blocks": [
+        { "exercise": "Sentadilla", "sets": 3, "rep_range": [6, 10], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Peso Muerto Rumano", "sets": 3, "rep_range": [6, 10], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Extensión de Cuádriceps", "sets": 3, "rep_range": [10, 15], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Curl Femoral", "sets": 3, "rep_range": [10, 15], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Elevación de Gemelos", "sets": 4, "rep_range": [10, 15], "rir_target": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Hypertrophy Chest/Arms",
+      "blocks": [
+        { "exercise": "Press Banca Inclinado", "sets": 3, "rep_range": [8, 12], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Aperturas con Mancuernas", "sets": 3, "rep_range": [10, 15], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Curl con Barra", "sets": 3, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Extensiones de Tríceps", "sets": 3, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Curl Martillo", "sets": 2, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Extensiones de Tríceps", "sets": 2, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 }
+      ]
+    }
+  ],
+  "volume_limits": { 
+    "sets_min": 10, 
+    "sets_target": 14, 
+    "sets_max": 22 
+  }
+}

@@ -107,107 +107,190 @@ async function seedExercises() {
   }
 }
 
-// Seed templates
+// Seed templates - Plantillas clásicas basadas en evidencia científica
 async function seedTemplates(adminId: string) {
-  const templates = [
-    {
-      name: 'PPL 6 Semanas',
-      description: 'Rutina Push-Pull-Legs de 6 semanas, 6 días por semana',
-      split: 'PPL',
-      weeks: 6,
-      days_per_week: 6,
-      days: [
-        {
-          day_number: 1,
-          name: 'Push (Empuje)',
-          exercises: [
-            { exercise_name: 'Press Banca', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Press Banca Inclinado', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 150 },
-            { exercise_name: 'Press Militar', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Elevaciones Laterales', sets: 3, rep_range_min: 12, rep_range_max: 15, rir_target: 2, rest_seconds: 90 },
-            { exercise_name: 'Extensiones de Tríceps', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-          ],
-        },
-        {
-          day_number: 2,
-          name: 'Pull (Tirón)',
-          exercises: [
-            { exercise_name: 'Peso Muerto', sets: 4, rep_range_min: 5, rep_range_max: 6, rir_target: 2, rest_seconds: 240 },
-            { exercise_name: 'Dominadas', sets: 4, rep_range_min: 6, rep_range_max: 10, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Remo con Barra', sets: 4, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 150 },
-            { exercise_name: 'Curl con Barra', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-            { exercise_name: 'Curl Martillo', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-          ],
-        },
-        {
-          day_number: 3,
-          name: 'Legs (Piernas)',
-          exercises: [
-            { exercise_name: 'Sentadilla', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 2, rest_seconds: 240 },
-            { exercise_name: 'Peso Muerto Rumano', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Sentadilla Búlgara', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 120 },
-            { exercise_name: 'Curl Femoral', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-            { exercise_name: 'Elevación de Gemelos', sets: 4, rep_range_min: 12, rep_range_max: 15, rir_target: 2, rest_seconds: 60 },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'Upper-Lower 8 Semanas',
-      description: 'Rutina Upper-Lower de 8 semanas, 4 días por semana',
-      split: 'UL',
-      weeks: 8,
-      days_per_week: 4,
-      days: [
-        {
-          day_number: 1,
-          name: 'Upper A (Tren Superior A)',
-          exercises: [
-            { exercise_name: 'Press Banca', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Remo con Barra', sets: 4, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 150 },
-            { exercise_name: 'Press Militar', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 150 },
-            { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 120 },
-            { exercise_name: 'Curl con Barra', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-          ],
-        },
-        {
-          day_number: 2,
-          name: 'Lower A (Tren Inferior A)',
-          exercises: [
-            { exercise_name: 'Sentadilla', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 2, rest_seconds: 240 },
-            { exercise_name: 'Peso Muerto Rumano', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Extensión de Cuádriceps', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-            { exercise_name: 'Curl Femoral', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 90 },
-            { exercise_name: 'Elevación de Gemelos', sets: 4, rep_range_min: 12, rep_range_max: 15, rir_target: 2, rest_seconds: 60 },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'Full Body 4 Semanas',
-      description: 'Rutina Full Body de 4 semanas, 3 días por semana',
-      split: 'FULL',
-      weeks: 4,
-      days_per_week: 3,
-      days: [
-        {
-          day_number: 1,
-          name: 'Full Body A',
-          exercises: [
-            { exercise_name: 'Sentadilla', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 180 },
-            { exercise_name: 'Press Banca', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 150 },
-            { exercise_name: 'Remo con Barra', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 2, rest_seconds: 150 },
-            { exercise_name: 'Press Militar', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 2, rest_seconds: 120 },
-            { exercise_name: 'Planchas', sets: 3, rep_range_min: 30, rep_range_max: 60, rir_target: 2, rest_seconds: 60 },
-          ],
-        },
-      ],
-    },
-  ];
+  // GBR - Generic Bulking Routine (Lyle McDonald)
+  const gbrTemplate = {
+    id: 'GBR-4D',
+    name: 'Generic Bulking Routine (Lyle McDonald)',
+    description: 'Rutina de volumen moderado con progresión lineal. 4 días Upper/Lower dividido en dos días de cada tipo.',
+    split: 'UL-UL',
+    weeks: 6,
+    days_per_week: 4,
+    effort_scale: 'RIR',
+    sessions: [
+      {
+        name: 'Upper A',
+        blocks: [
+          { exercise_name: 'Press Banca', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Remo con Barra', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Press Militar', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 1, rest_seconds: 150 },
+          { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 8, rep_range_max: 10, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Curl con Barra', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Extensiones de Tríceps', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 }
+        ]
+      },
+      {
+        name: 'Lower A',
+        blocks: [
+          { exercise_name: 'Sentadilla', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 240 },
+          { exercise_name: 'Peso Muerto Rumano', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Curl Femoral', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Extensión de Cuádriceps', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Elevación de Gemelos', sets: 5, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 60 }
+        ]
+      },
+      {
+        name: 'Upper B',
+        blocks: [
+          { exercise_name: 'Press Banca Inclinado', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Remo con Barra', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Elevaciones Laterales', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Curl Martillo', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Extensiones de Tríceps', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 }
+        ]
+      },
+      {
+        name: 'Lower B',
+        blocks: [
+          { exercise_name: 'Sentadilla', sets: 4, rep_range_min: 6, rep_range_max: 8, rir_target: 1, rest_seconds: 240 },
+          { exercise_name: 'Hip Thrust', sets: 4, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Curl Femoral', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Extensión de Cuádriceps', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Elevación de Gemelos', sets: 5, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 60 }
+        ]
+      }
+    ],
+    volume_limits: { sets_min: 8, sets_target: 12, sets_max: 20 }
+  };
+
+  // PHUL - Power Hypertrophy Upper Lower
+  const phulTemplate = {
+    id: 'PHUL-4D',
+    name: 'PHUL (Power Hypertrophy Upper Lower)',
+    description: 'Combina entrenamiento de fuerza (power) con hipertrofia. 2 días de potencia + 2 días de hipertrofia.',
+    split: 'Power Upper/Lower, Hypertrophy Upper/Lower',
+    weeks: 6,
+    days_per_week: 4,
+    effort_scale: 'RIR',
+    sessions: [
+      {
+        name: 'Upper Power',
+        blocks: [
+          { exercise_name: 'Press Banca', sets: 3, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 240 },
+          { exercise_name: 'Remo con Barra', sets: 3, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 240 },
+          { exercise_name: 'Press Militar', sets: 2, rep_range_min: 5, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Dominadas', sets: 2, rep_range_min: 5, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Curl con Barra', sets: 2, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Fondos en Paralelas', sets: 2, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 }
+        ]
+      },
+      {
+        name: 'Lower Power',
+        blocks: [
+          { exercise_name: 'Sentadilla', sets: 3, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 300 },
+          { exercise_name: 'Peso Muerto', sets: 2, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 300 },
+          { exercise_name: 'Peso Muerto Rumano', sets: 2, rep_range_min: 5, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Extensión de Cuádriceps', sets: 2, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Elevación de Gemelos', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 90 }
+        ]
+      },
+      {
+        name: 'Upper Hypertrophy',
+        blocks: [
+          { exercise_name: 'Press Banca Inclinado', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Aperturas con Mancuernas', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Elevaciones Laterales', sets: 3, rep_range_min: 12, rep_range_max: 20, rir_target: 1, rest_seconds: 60 },
+          { exercise_name: 'Curl con Barra', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Extensiones de Tríceps', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 }
+        ]
+      },
+      {
+        name: 'Lower Hypertrophy',
+        blocks: [
+          { exercise_name: 'Sentadilla', sets: 3, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Peso Muerto Rumano', sets: 3, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Extensión de Cuádriceps', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Curl Femoral', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Elevación de Gemelos', sets: 4, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 60 }
+        ]
+      }
+    ],
+    volume_limits: { sets_min: 8, sets_target: 12, sets_max: 20 }
+  };
+
+  // PHAT - Layne Norton
+  const phatTemplate = {
+    id: 'PHAT-5D',
+    name: 'PHAT (Layne Norton) 5 días',
+    description: 'Power Hypertrophy Adaptive Training. 2 días de fuerza + 3 días de hipertrofia especializada por grupos musculares.',
+    split: 'Power Upper/Lower + Hypertrophy Back-Shoulders/Lower/Chest-Arms',
+    weeks: 6,
+    days_per_week: 5,
+    effort_scale: 'RIR',
+    sessions: [
+      {
+        name: 'Power Upper',
+        blocks: [
+          { exercise_name: 'Press Banca', sets: 3, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 240 },
+          { exercise_name: 'Remo con Barra', sets: 3, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 240 },
+          { exercise_name: 'Press Militar', sets: 2, rep_range_min: 5, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Dominadas', sets: 2, rep_range_min: 5, rep_range_max: 8, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Curl con Barra', sets: 2, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Fondos en Paralelas', sets: 2, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 }
+        ]
+      },
+      {
+        name: 'Power Lower',
+        blocks: [
+          { exercise_name: 'Sentadilla', sets: 3, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 300 },
+          { exercise_name: 'Peso Muerto', sets: 2, rep_range_min: 3, rep_range_max: 5, rir_target: 1, rest_seconds: 300 },
+          { exercise_name: 'Extensión de Cuádriceps', sets: 2, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Elevación de Gemelos', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 90 }
+        ]
+      },
+      {
+        name: 'Hypertrophy Back/Shoulders',
+        blocks: [
+          { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Jalón al Pecho', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Remo con Barra', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Elevaciones Laterales', sets: 4, rep_range_min: 12, rep_range_max: 20, rir_target: 1, rest_seconds: 60 },
+          { exercise_name: 'Elevaciones Laterales', sets: 3, rep_range_min: 12, rep_range_max: 20, rir_target: 1, rest_seconds: 60 }
+        ]
+      },
+      {
+        name: 'Hypertrophy Lower',
+        blocks: [
+          { exercise_name: 'Sentadilla', sets: 3, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Peso Muerto Rumano', sets: 3, rep_range_min: 6, rep_range_max: 10, rir_target: 1, rest_seconds: 180 },
+          { exercise_name: 'Extensión de Cuádriceps', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Curl Femoral', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Elevación de Gemelos', sets: 4, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 60 }
+        ]
+      },
+      {
+        name: 'Hypertrophy Chest/Arms',
+        blocks: [
+          { exercise_name: 'Press Banca Inclinado', sets: 3, rep_range_min: 8, rep_range_max: 12, rir_target: 1, rest_seconds: 120 },
+          { exercise_name: 'Aperturas con Mancuernas', sets: 3, rep_range_min: 10, rep_range_max: 15, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Curl con Barra', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Extensiones de Tríceps', sets: 3, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Curl Martillo', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 },
+          { exercise_name: 'Extensiones de Tríceps', sets: 2, rep_range_min: 10, rep_range_max: 12, rir_target: 1, rest_seconds: 90 }
+        ]
+      }
+    ],
+    volume_limits: { sets_min: 10, sets_target: 14, sets_max: 22 }
+  };
+
+  const templates = [gbrTemplate, phulTemplate, phatTemplate];
   
   for (const template of templates) {
-    // Check if template already exists
-    const snapshot = await db.collection('templates').where('name', '==', template.name).limit(1).get();
+    const snapshot = await db.collection('templates').where('id', '==', template.id).limit(1).get();
     
     if (snapshot.empty) {
       await db.collection('templates').add({
@@ -217,6 +300,8 @@ async function seedTemplates(adminId: string) {
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       });
       console.log(`Created template: ${template.name}`);
+    } else {
+      console.log(`Template ${template.name} already exists`);
     }
   }
 }

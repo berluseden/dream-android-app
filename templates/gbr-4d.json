@@ -1,0 +1,59 @@
+{
+  "id": "GBR-4D",
+  "name": "Generic Bulking Routine (Lyle McDonald)",
+  "description": "Rutina de volumen moderado con progresión lineal. 4 días Upper/Lower dividido en dos días de cada tipo.",
+  "version": 1,
+  "weeks": 6,
+  "days_per_week": 4,
+  "split": "UL-UL",
+  "effort_scale": "RIR",
+  "sessions": [
+    {
+      "name": "Upper A",
+      "blocks": [
+        { "exercise": "Press Banca", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Remo con Barra", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Press Militar", "sets": 3, "rep_range": [8, 10], "rir_target": 1, "rest_seconds": 150 },
+        { "exercise": "Jalón al Pecho", "sets": 3, "rep_range": [8, 10], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Curl con Barra", "sets": 2, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Extensiones de Tríceps", "sets": 2, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Lower A",
+      "blocks": [
+        { "exercise": "Sentadilla", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 240 },
+        { "exercise": "Peso Muerto Rumano", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Curl Femoral", "sets": 3, "rep_range": [8, 12], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Extensión de Cuádriceps", "sets": 3, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Elevación de Gemelos", "sets": 5, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Upper B",
+      "blocks": [
+        { "exercise": "Press Banca Inclinado", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Remo con Barra", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Elevaciones Laterales", "sets": 3, "rep_range": [10, 15], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Jalón al Pecho", "sets": 3, "rep_range": [8, 12], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Curl Martillo", "sets": 2, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Extensiones de Tríceps", "sets": 2, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Lower B",
+      "blocks": [
+        { "exercise": "Sentadilla", "sets": 4, "rep_range": [6, 8], "rir_target": 1, "rest_seconds": 240 },
+        { "exercise": "Hip Thrust", "sets": 4, "rep_range": [6, 10], "rir_target": 1, "rest_seconds": 180 },
+        { "exercise": "Curl Femoral", "sets": 3, "rep_range": [8, 12], "rir_target": 1, "rest_seconds": 120 },
+        { "exercise": "Extensión de Cuádriceps", "sets": 3, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 90 },
+        { "exercise": "Elevación de Gemelos", "sets": 5, "rep_range": [10, 12], "rir_target": 1, "rest_seconds": 60 }
+      ]
+    }
+  ],
+  "volume_limits": { 
+    "sets_min": 8, 
+    "sets_target": 12, 
+    "sets_max": 20 
+  }
+}
