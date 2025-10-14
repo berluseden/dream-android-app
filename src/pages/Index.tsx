@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { runSeed } from '@/scripts/seedFirestore';
 import { useState } from 'react';
 import { 
@@ -16,13 +17,15 @@ import {
   Flame,
   Award,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Activity
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useActiveMesocycle } from '@/hooks/useMesocycles';
 import { useTodayWorkout } from '@/hooks/useWorkouts';
 import { useWeeklyVolume, useAdherence } from '@/hooks/useStats';
+import { useStrengthProfile } from '@/hooks/useStrengthProfile';
 
 const Index = () => {
   const { profile, role, isAdmin } = useAuth();
@@ -33,6 +36,7 @@ const Index = () => {
   const { data: todayWorkout } = useTodayWorkout();
   const { data: weeklyVolume } = useWeeklyVolume();
   const { data: adherence } = useAdherence();
+  const { hasCompletedCalibration, isLoading: isLoadingProfile } = useStrengthProfile();
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -76,6 +80,26 @@ const Index = () => {
             <Dumbbell className="h-full w-full" />
           </div>
         </div>
+
+        {/* Calibration Alert */}
+        {!isLoadingProfile && !hasCompletedCalibration() && (
+          <Alert className="border-warning bg-warning-light">
+            <Activity className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning-foreground">Calibra tu Fuerza Inicial</AlertTitle>
+            <AlertDescription className="text-warning-foreground/90">
+              Completa la calibración de 4 ejercicios clave para obtener recomendaciones de carga más precisas
+            </AlertDescription>
+            <Button
+              variant="default"
+              size="sm"
+              className="mt-3"
+              onClick={() => navigate('/onboarding/calibration')}
+            >
+              Comenzar Calibración
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Alert>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">

@@ -90,5 +90,30 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin() || isCoach();
     }
+    
+    match /user_strength_profile/{profileId} {
+      allow read: if isAuthenticated() && profileId.matches('^' + request.auth.uid + '_.*');
+      allow write: if isAuthenticated() && profileId.matches('^' + request.auth.uid + '_.*');
+    }
+    
+    match /sets/{setId} {
+      allow read: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+      allow write: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+    }
+    
+    match /weekly_targets/{targetId} {
+      allow read: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+      allow write: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+    }
+    
+    match /exercise_feedback/{feedbackId} {
+      allow read: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+      allow write: if isOwner(resource.data.user_id) || isAssignedCoach(resource.data.user_id) || isAdmin();
+    }
+    
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
   }
 }

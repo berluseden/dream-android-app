@@ -54,6 +54,14 @@
         { "fieldPath": "name", "order": "ASCENDING" },
         { "fieldPath": "prime_muscle", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "user_strength_profile",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_id", "order": "ASCENDING" },
+        { "fieldPath": "pattern", "order": "ASCENDING" }
+      ]
     }
   ]
 }

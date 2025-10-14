@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, Play } from 'lucide-react';
+import { Plus, Play, Zap } from 'lucide-react';
 import { SetRowInline } from './SetRowInline';
 import { Set } from '@/hooks/useWorkouts';
 import { calculateE1RMWithRIR, calculateNextLoad } from '@/lib/algorithms';
+import { generateWarmups } from '@/lib/warmupGenerator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ExerciseCardProps {
   exercise: {
@@ -37,6 +40,9 @@ export function ExerciseCard({
   onAddSet,
   onExerciseComplete,
 }: ExerciseCardProps) {
+  const [showWarmups, setShowWarmups] = useState(false);
+  const [warmupsCompleted, setWarmupsCompleted] = useState(false);
+  
   const workingSets = sets.filter(s => s.set_type === 'working');
   const warmupSets = sets.filter(s => s.set_type === 'warmup');
 
@@ -52,6 +58,12 @@ export function ExerciseCard({
 
   const suggestion = calculateNextLoad(history);
   const nextSetNumber = workingSets.length + 1;
+  
+  // Generate suggested warmups if compound and no sets yet
+  const suggestedWarmups = 
+    exercise.is_compound && workingSets.length === 0 && warmupSets.length === 0
+      ? generateWarmups(suggestion.load || 60, true)
+      : [];
 
   const getMuscleColor = (muscle: string) => {
     const colors: Record<string, string> = {
@@ -135,33 +147,61 @@ export function ExerciseCard({
           </div>
         )}
 
+        {/* Suggested Warmups (Auto-generated) */}
+        {suggestedWarmups.length > 0 && !warmupsCompleted && canAddSets && (
+          <Collapsible open={showWarmups} onOpenChange={setShowWarmups}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full gap-2">
+                <Zap className="h-4 w-4" />
+                {showWarmups ? 'Ocultar' : 'Mostrar'} Calentamiento Sugerido ({suggestedWarmups.length} sets)
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-2">
+              {suggestedWarmups.map((warmup, idx) => (
+                <SetRowInline
+                  key={`warmup-${idx}`}
+                  setNumber={idx + 1}
+                  setType="warmup"
+                  suggestedLoad={warmup.load}
+                  suggestedReps={warmup.reps}
+                  onComplete={async (data) => {
+                    await onAddSet({ ...data, setType: 'warmup' });
+                    if (idx === suggestedWarmups.length - 1) {
+                      setWarmupsCompleted(true);
+                      setShowWarmups(false);
+                    }
+                  }}
+                />
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setWarmupsCompleted(true);
+                  setShowWarmups(false);
+                }}
+              >
+                Saltar Calentamiento
+              </Button>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
         {/* Add Set Section */}
         {canAddSets && (
           <div className="space-y-3 pt-4 border-t">
             {suggestion.load > 0 && workingSets.length > 0 && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-1">💡 Sugerencia próxima serie:</p>
-                <p className="text-sm text-muted-foreground">
-                  {suggestion.load}kg × {suggestion.reps} reps - {suggestion.reason}
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                  <span className="text-lg">💡</span>
+                  Sugerencia próxima serie:
                 </p>
+                <p className="text-sm">
+                  <strong>{suggestion.load}kg × {suggestion.reps} reps</strong>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{suggestion.reason}</p>
               </div>
-            )}
-
-            {workingSets.length === 0 && warmupSets.length === 0 && (
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => onAddSet({
-                  load: 20,
-                  reps: 8,
-                  rir: 5,
-                  rpe: 5,
-                  setType: 'warmup',
-                })}
-              >
-                <Plus className="h-4 w-4" />
-                Añadir Set de Calentamiento
-              </Button>
             )}
 
             <SetRowInline

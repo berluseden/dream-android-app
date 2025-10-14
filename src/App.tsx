@@ -17,6 +17,7 @@ import CreateMesocycle from "./pages/mesocycles/CreateMesocycle";
 import Progress from "./pages/Progress";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
+import Calibration from "./pages/onboarding/Calibration";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -126,6 +127,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/onboarding/calibration"
+              element={
+                <ProtectedRoute>
+                  <Calibration />
                 </ProtectedRoute>
               }
             />
