@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    function isCoach() {
+      return isAuthenticated() && getUserRole() == 'coach';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAssignedCoach(clientId) {
+      return isCoach() && 
+             get(/databases/$(database)/documents/users/$(clientId)).data.coach_id == request.auth.uid;
+    }
+    
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAssignedCoach(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAssignedCoach(userId);
+      allow delete: if isAdmin();
+    }
+    
+    match /user_roles/{roleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /muscles/{muscleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /exercises/{exerciseId} {
+      allow read: if true;
+      allow create: if isAdmin() || isCoach();
+      allow update, delete: if isAdmin() || 
+                               (isCoach() && resource.data.created_by == request.auth.uid);
+    }
+  }
+}
