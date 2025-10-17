@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import modern design system */
+@import './styles/design-system.css';
+
 /* Fitness App Design System - Inspired by RP Hypertrofia & JEFIT
    All colors MUST be HSL for proper theme switching
 */

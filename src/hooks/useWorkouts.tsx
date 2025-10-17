@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import {
   collection,
   query,
@@ -11,6 +11,10 @@ import {
   serverTimestamp,
   increment,
   getDoc,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
@@ -251,5 +255,51 @@ export function useCompleteWorkout() {
         description: "Buen trabajo 💪",
       });
     },
+  });
+}
+
+/**
+ * Hook para paginación infinita de workouts
+ * Carga 10 workouts por página para evitar sobrecarga
+ */
+export function useWorkoutsPaginated(mesocycleId?: string) {
+  const { user } = useAuth();
+  const PAGE_SIZE = 10;
+  
+  return useInfiniteQuery({
+    queryKey: ['workouts-paginated', mesocycleId, user?.uid],
+    queryFn: async ({ pageParam }: { pageParam?: QueryDocumentSnapshot<DocumentData> }) => {
+      if (!user?.uid) return { workouts: [], lastDoc: null };
+      
+      let q = query(
+        collection(db, 'workouts'),
+        where('user_id', '==', user.uid),
+        orderBy('planned_date', 'desc'),
+        limit(PAGE_SIZE)
+      );
+      
+      if (mesocycleId) {
+        q = query(q, where('mesocycle_id', '==', mesocycleId));
+      }
+      
+      if (pageParam) {
+        q = query(q, startAfter(pageParam));
+      }
+      
+      const snapshot = await getDocs(q);
+      const workouts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        planned_date: doc.data().planned_date?.toDate(),
+        completed_at: doc.data().completed_at?.toDate(),
+      })) as Workout[];
+      
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
+      
+      return { workouts, lastDoc };
+    },
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.lastDoc ?? undefined,
+    enabled: !!user?.uid,
   });
 }

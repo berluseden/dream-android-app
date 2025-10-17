@@ -37,7 +37,7 @@ export default function Calibration() {
   >([]);
 
   // NEW: Import previous weights from last mesocycle
-  const handleImportPreviousWeights = () => {
+  const handleImportPreviousWeights = async () => {
     if (!activeMesocycle) {
       toast({
         title: 'Sin mesociclo activo',
@@ -47,11 +47,72 @@ export default function Calibration() {
       return;
     }
 
-    // TODO: Query last sets from previous mesocycle and populate formData
-    toast({
-      title: 'Función en desarrollo',
-      description: 'Pronto podrás importar tus últimas cargas',
-    });
+    try {
+      // Get last workout from previous mesocycle
+      const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      
+      const workoutsRef = collection(db, 'workouts');
+      const lastWorkoutQuery = query(
+        workoutsRef,
+        where('mesocycle_id', '==', activeMesocycle.id),
+        where('status', '==', 'completed'),
+        orderBy('completed_at', 'desc'),
+        limit(1)
+      );
+      
+      const workoutSnapshot = await getDocs(lastWorkoutQuery);
+      
+      if (workoutSnapshot.empty) {
+        toast({
+          title: 'No hay entrenamientos previos',
+          description: 'Completa tu primer entrenamiento para importar cargas',
+        });
+        return;
+      }
+      
+      const lastWorkout = workoutSnapshot.docs[0];
+      
+      // Get sets from last workout for current exercise pattern
+      const setsRef = collection(db, 'sets');
+      const setsQuery = query(
+        setsRef,
+        where('workout_id', '==', lastWorkout.id),
+        where('set_type', '==', 'working'), // Only working sets
+        orderBy('load', 'desc'),
+        limit(1)
+      );
+      
+      const setsSnapshot = await getDocs(setsQuery);
+      
+      if (setsSnapshot.empty) {
+        toast({
+          title: 'No hay sets previos',
+          description: 'No se encontraron cargas para este patrón',
+        });
+        return;
+      }
+      
+      // Import the heaviest set as reference
+      const lastSet = setsSnapshot.docs[0].data();
+      setFormData({
+        load: lastSet.load || 0,
+        reps: lastSet.completed_reps || 8,
+        rir: lastSet.rir_actual || 1,
+      });
+      
+      toast({
+        title: 'Cargas importadas',
+        description: `Última carga: ${lastSet.load}kg × ${lastSet.completed_reps} reps`,
+      });
+    } catch (error) {
+      console.error('Error importing previous weights:', error);
+      toast({
+        title: 'Error al importar',
+        description: 'No se pudieron cargar los pesos anteriores',
+        variant: 'destructive',
+      });
+    }
   };
 
   const currentExercise = CALIBRATION_EXERCISES[currentStep];

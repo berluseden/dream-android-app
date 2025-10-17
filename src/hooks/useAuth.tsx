@@ -61,22 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        // HARDCODED ADMIN FOR TESTING - berluseden@gmail.com
-        if (firebaseUser.email === 'berluseden@gmail.com') {
-          const userProfile = await fetchProfile(firebaseUser.uid);
-          setProfile(userProfile);
-          setRole('admin');
-          setLoading(false);
-          return;
-        }
-
         const [userProfile, userRole] = await Promise.all([
           fetchProfile(firebaseUser.uid),
           fetchRole(firebaseUser.uid)
         ]);
         
         setProfile(userProfile);
-        setRole(userRole);
+        setRole(userRole || 'user'); // Default a 'user' si no existe rol
         
         // Listener real-time para cambios de rol
         const roleRef = doc(db, 'user_roles', firebaseUser.uid);

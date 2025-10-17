@@ -7,15 +7,35 @@ import {
 } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { logger } from './logger';
+
+// Validar variables de entorno críticas
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID'
+];
+
+// Solo validar en producción (en dev usamos config hardcoded)
+if (!import.meta.env.DEV) {
+  requiredEnvVars.forEach(varName => {
+    if (!import.meta.env[varName]) {
+      throw new Error(`❌ Missing required environment variable: ${varName}`);
+    }
+  });
+}
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCRqrK8oOYDafgmGqRHbso-_BpLozkDlsA",
-  authDomain: "fitness-dfbb4.firebaseapp.com",
-  projectId: "fitness-dfbb4",
-  storageBucket: "fitness-dfbb4.firebasestorage.app",
-  messagingSenderId: "437995448295",
-  appId: "1:437995448295:web:6d069d7d520ddbcd633f42",
-  measurementId: "G-KZ2X47WGG0"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCRqrK8oOYDafgmGqRHbso-_BpLozkDlsA",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "fitness-dfbb4.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "fitness-dfbb4",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "fitness-dfbb4.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "437995448295",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:437995448295:web:6d069d7d520ddbcd633f42",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-KZ2X47WGG0"
 };
 
 export const app = initializeApp(firebaseConfig);
@@ -27,9 +47,9 @@ export const functions = getFunctions(app);
 // Enable offline persistence
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
-    console.warn('Persistence: Multiple tabs open');
+    logger.warn('Persistence: Multiple tabs open');
   } else if (err.code === 'unimplemented') {
-    console.warn('Persistence not supported');
+    logger.warn('Persistence not supported');
   }
 });
 

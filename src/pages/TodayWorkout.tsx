@@ -9,8 +9,10 @@ import { ExerciseThumbnailCarousel } from '@/components/workout/ExerciseThumbnai
 import { ExerciseCard } from '@/components/workout/ExerciseCard';
 import { FeedbackDialog } from '@/components/workout/FeedbackDialog';
 import { RestTimer } from '@/components/workout/RestTimer';
-import { Loader2, Dumbbell } from 'lucide-react';
+import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
+import { Loader2, Dumbbell, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export default function TodayWorkout() {
   const navigate = useNavigate();
@@ -118,9 +120,17 @@ export default function TodayWorkout() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
+        <PageTransition>
+          <div className="flex flex-col items-center justify-center py-20">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <Flame className="h-12 w-12 text-primary" />
+            </motion.div>
+            <p className="mt-4 text-muted-foreground">Preparando tu entrenamiento...</p>
+          </div>
+        </PageTransition>
       </AppLayout>
     );
   }
@@ -128,15 +138,25 @@ export default function TodayWorkout() {
   if (!workout) {
     return (
       <AppLayout>
-        <div className="container mx-auto p-6">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-semibold mb-2">No hay entrenamiento programado para hoy</h2>
-              <p className="text-muted-foreground">Crea un nuevo mesociclo para comenzar</p>
-            </CardContent>
-          </Card>
-        </div>
+        <PageTransition>
+          <div className="container mx-auto p-6">
+            <FadeIn>
+              <Card className="glass-card">
+                <CardContent className="py-12 text-center">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Dumbbell className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  </motion.div>
+                  <h2 className="text-2xl font-bold mb-2">No hay entrenamiento programado para hoy</h2>
+                  <p className="text-muted-foreground">Crea un nuevo mesociclo para comenzar tu viaje 💪</p>
+                </CardContent>
+              </Card>
+            </FadeIn>
+          </div>
+        </PageTransition>
       </AppLayout>
     );
   }
@@ -159,65 +179,101 @@ export default function TodayWorkout() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
-        <WorkoutHeader
-          workoutTitle="Entrenamiento de Hoy"
-          weekDay={new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}
-          startTime={startTime}
-          onStart={handleStart}
-          onFinish={handleComplete}
-          onCancel={handleCancel}
-          totalSets={targetTotalSets}
-          completedSets={totalSets}
-          isCompleted={workout.status === 'completed'}
-        />
+      <PageTransition>
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header moderno con gradiente */}
+          <FadeIn delay={0}>
+            <div className="relative overflow-hidden rounded-2xl mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10" />
+              <div className="relative glass-card p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Flame className="h-6 w-6 text-orange-500" />
+                  <h1 className="text-3xl font-bold">
+                    <span className="neon-text">Entrenamiento de Hoy</span>
+                  </h1>
+                </div>
+                <p className="text-muted-foreground">
+                  {new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+              </div>
+            </div>
+          </FadeIn>
 
-        {startTime && (
-          <>
-            <ExerciseThumbnailCarousel
-              exercises={exerciseThumbnails}
-              activeExerciseId={activeExerciseId}
-              onExerciseClick={setActiveExerciseId}
+          <FadeIn delay={0.1}>
+            <WorkoutHeader
+              workoutTitle="Entrenamiento de Hoy"
+              weekDay={new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}
+              startTime={startTime}
+              onStart={handleStart}
+              onFinish={handleComplete}
+              onCancel={handleCancel}
+              totalSets={targetTotalSets}
+              completedSets={totalSets}
+              isCompleted={workout.status === 'completed'}
             />
+          </FadeIn>
 
-            {showRestTimer && (
-              <RestTimer
-                targetSeconds={180}
-                onComplete={() => setShowRestTimer(false)}
-                onSkip={() => setShowRestTimer(false)}
-              />
-            )}
-          </>
-        )}
+          {startTime && (
+            <>
+              <FadeIn delay={0.2}>
+                <ExerciseThumbnailCarousel
+                  exercises={exerciseThumbnails}
+                  activeExerciseId={activeExerciseId}
+                  onExerciseClick={setActiveExerciseId}
+                />
+              </FadeIn>
 
-        <div className="space-y-4">
-          {exercises?.map((exercise) => {
-            const sets = allSets?.filter(s => s.exercise_id === exercise.id) || [];
-            const isActive = exercise.id === activeExerciseId;
-            
-            return (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                sets={sets}
-                workoutId={workout.id}
-                isActive={isActive}
-                canAddSets={!!startTime && workout.status !== 'completed'}
-                onAddSet={(data) => handleAddSet(exercise.id, data)}
-                onExerciseComplete={() => handleExerciseComplete(exercise.id, exercise.name, exercise.prime_muscle)}
-              />
-            );
-          })}
+              {showRestTimer && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <RestTimer
+                    targetSeconds={180}
+                    onComplete={() => setShowRestTimer(false)}
+                    onSkip={() => setShowRestTimer(false)}
+                  />
+                </motion.div>
+              )}
+            </>
+          )}
+
+          <div className="space-y-4">
+            {exercises?.map((exercise, index) => {
+              const sets = allSets?.filter(s => s.exercise_id === exercise.id) || [];
+              const isActive = exercise.id === activeExerciseId;
+              
+              return (
+                <FadeIn key={exercise.id} delay={0.3 + index * 0.05}>
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <ExerciseCard
+                      exercise={exercise}
+                      sets={sets}
+                      workoutId={workout.id}
+                      isActive={isActive}
+                      canAddSets={!!startTime && workout.status !== 'completed'}
+                      onAddSet={(data) => handleAddSet(exercise.id, data)}
+                      onExerciseComplete={() => handleExerciseComplete(exercise.id, exercise.name, exercise.prime_muscle)}
+                    />
+                  </motion.div>
+                </FadeIn>
+              );
+            })}
+          </div>
+
+          <FeedbackDialog
+            open={feedbackDialog.open}
+            onOpenChange={(open) => setFeedbackDialog(prev => ({ ...prev, open }))}
+            exerciseName={feedbackDialog.exerciseName}
+            muscleName={feedbackDialog.muscleName}
+            onSubmit={handleFeedbackSubmit}
+          />
         </div>
-
-        <FeedbackDialog
-          open={feedbackDialog.open}
-          onOpenChange={(open) => setFeedbackDialog(prev => ({ ...prev, open }))}
-          exerciseName={feedbackDialog.exerciseName}
-          muscleName={feedbackDialog.muscleName}
-          onSubmit={handleFeedbackSubmit}
-        />
-      </div>
+      </PageTransition>
     </AppLayout>
   );
 }

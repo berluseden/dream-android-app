@@ -5,6 +5,8 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/settings/ThemeToggle';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -12,6 +14,9 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { profile, role } = useAuth();
+  
+  // Activar atajos de teclado
+  useKeyboardShortcuts();
 
   return (
     <SidebarProvider>
@@ -22,18 +27,21 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* Mobile Header with Drawer */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 border-b bg-background flex items-center px-4" style={{ paddingTop: 'var(--safe-top)' }}>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <AppSidebar />
-            </SheetContent>
-          </Sheet>
-          <span className="ml-4 font-semibold">App Hipertrofia</span>
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 border-b bg-background flex items-center px-4 justify-between" style={{ paddingTop: 'var(--safe-top)' }}>
+          <div className="flex items-center gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <AppSidebar />
+              </SheetContent>
+            </Sheet>
+            <span className="ml-2 font-semibold">App Hipertrofia</span>
+          </div>
+          <ThemeToggle />
         </div>
 
         {/* Main Content */}

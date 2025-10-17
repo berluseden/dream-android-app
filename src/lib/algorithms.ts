@@ -1,6 +1,10 @@
 /**
  * Algoritmos de progresión y autorregulación
+ * Incluye memoización para cálculos intensivos
  */
+
+// Cache para cálculos de 1RM
+const e1rmCache = new Map<string, number>();
 
 export interface SetHistory {
   load: number;
@@ -107,13 +111,30 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
 /**
  * Calcula el 1RM estimado usando la fórmula de Epley
  * e1RM = peso × (1 + reps / 30)
+ * Incluye cache para evitar recálculos
  */
 export function calculateE1RM(load: number, reps: number): number {
-  return Math.round(load * (1 + reps / 30));
+  const cacheKey = `${load}-${reps}`;
+  
+  if (e1rmCache.has(cacheKey)) {
+    return e1rmCache.get(cacheKey)!;
+  }
+  
+  const e1rm = Math.round(load * (1 + reps / 30));
+  e1rmCache.set(cacheKey, e1rm);
+  
+  // Limpiar cache si crece mucho (>1000 entradas)
+  if (e1rmCache.size > 1000) {
+    const keysToDelete = Array.from(e1rmCache.keys()).slice(0, 500);
+    keysToDelete.forEach(key => e1rmCache.delete(key));
+  }
+  
+  return e1rm;
 }
 
 /**
  * Calcula el 1RM estimado ajustado por RIR
+ * Con memoización automática
  */
 export function calculateE1RMWithRIR(load: number, reps: number, rir: number): number {
   const totalReps = reps + rir;
