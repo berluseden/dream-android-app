@@ -63,57 +63,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let unsubscribeRole: (() => void) | null = null;
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        const [userProfile, userRole] = await Promise.all([
-          fetchProfile(firebaseUser.uid),
-          fetchRole(firebaseUser.uid)
-        ]);
-        
-        setProfile(userProfile);
-        setRole(userRole || 'user'); // Default a 'user' si no existe rol
-        
-        // Listener real-time para cambios de rol
-        const roleRef = doc(db, 'user_roles', firebaseUser.uid);
-        const unsubscribeRole = onSnapshot(
-          roleRef, 
-          (roleDoc) => {
-            if (roleDoc.exists()) {
-              const newRole = roleDoc.data().role as UserRole;
-              // Usar callback para comparar con el estado actual
-              setRole((prevRole) => {
-                if (newRole !== prevRole) {
-                  toast({
-                    title: "Tu rol ha sido actualizado",
-                    description: `Ahora eres: ${newRole}`,
-                  });
-                }
-                return newRole;
+        try {
+          const [userProfile, userRole] = await Promise.all([
+            fetchProfile(firebaseUser.uid),
+            fetchRole(firebaseUser.uid)
+          ]);
+          
+          setProfile(userProfile);
+          setRole(userRole || 'user');
+          
+          // Listener real-time para cambios de rol
+          const roleRef = doc(db, 'user_roles', firebaseUser.uid);
+          unsubscribeRole = onSnapshot(
+            roleRef, 
+            (roleDoc) => {
+              if (roleDoc.exists()) {
+                const newRole = roleDoc.data().role as UserRole;
+                setRole((prevRole) => {
+                  if (newRole !== prevRole) {
+                    toast({
+                      title: "Tu rol ha sido actualizado",
+                      description: `Ahora eres: ${newRole}`,
+                    });
+                  }
+                  return newRole;
+                });
+              }
+            },
+            (error) => {
+              console.error('Error en listener de rol:', error);
+              toast({
+                title: "Error al sincronizar rol",
+                description: "Por favor recarga la página",
+                variant: "destructive",
               });
             }
-          },
-          (error) => {
-            console.error('Error en listener de rol:', error);
-            toast({
-              title: "Error al sincronizar rol",
-              description: "Por favor recarga la página",
-              variant: "destructive",
-            });
-          }
-        );
-        
-        return () => unsubscribeRole();
+          );
+        } catch (error) {
+          console.error('Error al cargar perfil/rol:', error);
+        } finally {
+          setLoading(false);
+        }
       } else {
         setProfile(null);
         setRole(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      if (unsubscribeRole) {
+        unsubscribeRole();
+      }
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
