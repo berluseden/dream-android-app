@@ -215,7 +215,7 @@ export const notifyPendingWorkouts = functions.pubsub
  *   -d '{"userId": "abc123", "exerciseId": "bench-press"}'
  */
 export const calculateUserE1RM = functions.https.onCall(async (data, context) => {
-  const { userId, exerciseId } = data;
+  const { exerciseId } = data;
 
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated');

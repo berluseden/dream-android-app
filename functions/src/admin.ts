@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { createAuditLog } from './audit';
-import { UserRole } from './types';
+// import { UserRole } from './types'; // Unused import
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -299,7 +299,7 @@ export const deleteUser = functions.https.onCall(async (data, context) => {
 
 // Reset user password
 export const resetUserPassword = functions.https.onCall(async (data, context) => {
-  const adminId = await requireAdmin(context);
+  await requireAdmin(context);
   
   const { email } = data;
   

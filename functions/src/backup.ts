@@ -98,7 +98,7 @@ export const backupCollections = functions.https.onCall(async (data, context) =>
 
 // Reindex computed fields
 export const reindexComputedFields = functions.https.onCall(async (data, context) => {
-  const adminId = await requireAdmin(context);
+  await requireAdmin(context);
   
   try {
     console.log('Starting reindex process...');
