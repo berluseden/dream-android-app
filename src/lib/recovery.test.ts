@@ -17,7 +17,7 @@ describe('calculateRecoveryScore', () => {
     
     expect(result.score).toBe(100);
     expect(result.category).toBe('good');
-    expect(result.recommendations).toHaveLength(0);
+    expect(result.recommendations).toContain('Recuperación óptima. Continúa con tu programación actual.');
   });
 
   it('should penalize insufficient sleep', () => {
@@ -30,7 +30,7 @@ describe('calculateRecoveryScore', () => {
     });
     
     expect(result.score).toBeLessThan(80);
-    expect(result.recommendations).toContain('Dormir ≥ 7 horas');
+    expect(result.recommendations.some(r => r.includes('sueño'))).toBe(true);
   });
 
   it('should penalize low HRV', () => {
@@ -43,7 +43,7 @@ describe('calculateRecoveryScore', () => {
     });
     
     expect(result.score).toBeLessThan(85);
-    expect(result.recommendations).toContain('Mejorar HRV');
+    expect(result.recommendations.some(r => r.includes('HRV'))).toBe(true);
   });
 
   it('should penalize high resting heart rate', () => {
@@ -56,7 +56,7 @@ describe('calculateRecoveryScore', () => {
     });
     
     expect(result.score).toBeLessThan(90);
-    expect(result.recommendations).toContain('Reducir estrés');
+    expect(result.recommendations.some(r => r.includes('FC en reposo') || r.includes('estrés'))).toBe(true);
   });
 
   it('should penalize high soreness', () => {
@@ -69,7 +69,7 @@ describe('calculateRecoveryScore', () => {
     });
     
     expect(result.score).toBeLessThan(85);
-    expect(result.recommendations).toContain('Considerar deload');
+    expect(result.recommendations.some(r => r.includes('Fatiga muscular') || r.includes('volumen'))).toBe(true);
   });
 
   it('should penalize low adherence', () => {
@@ -82,7 +82,7 @@ describe('calculateRecoveryScore', () => {
     });
     
     expect(result.score).toBeLessThan(95);
-    expect(result.recommendations).toContain('Mantener consistencia');
+    expect(result.recommendations.some(r => r.includes('adherencia'))).toBe(true);
   });
 
   it('should categorize as moderate with score 60-79', () => {

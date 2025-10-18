@@ -5,18 +5,39 @@ import {
   calculateNutritionRequirements,
   analyzeNutritionCompliance,
   suggestCalorieAdjustment,
+  type NutritionProfile,
+  type NutritionEntry,
+  type NutritionRequirements,
 } from './nutrition';
 
 describe('calculateBMR', () => {
   it('should calculate BMR for male using Mifflin-St Jeor', () => {
-    const bmr = calculateBMR(80, 180, 30, 'male');
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 80,
+      height: 180,
+      age: 30,
+      biological_sex: 'male',
+      activity_level: 'moderate',
+      goal: 'maintain',
+    };
+    const bmr = calculateBMR(profile);
     // BMR = (10 * 80) + (6.25 * 180) - (5 * 30) + 5
     // BMR = 800 + 1125 - 150 + 5 = 1780
     expect(bmr).toBe(1780);
   });
 
   it('should calculate BMR for female using Mifflin-St Jeor', () => {
-    const bmr = calculateBMR(60, 165, 25, 'female');
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 60,
+      height: 165,
+      age: 25,
+      biological_sex: 'female',
+      activity_level: 'moderate',
+      goal: 'maintain',
+    };
+    const bmr = calculateBMR(profile);
     // BMR = (10 * 60) + (6.25 * 165) - (5 * 25) - 161
     // BMR = 600 + 1031.25 - 125 - 161 = 1345.25
     expect(bmr).toBe(1345.25);
@@ -25,108 +46,205 @@ describe('calculateBMR', () => {
 
 describe('calculateTDEE', () => {
   it('should calculate TDEE for sedentary activity', () => {
-    const bmr = 1780;
-    const tdee = calculateTDEE(bmr, 'sedentary');
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 80,
+      height: 180,
+      age: 30,
+      biological_sex: 'male',
+      activity_level: 'sedentary',
+      goal: 'maintain',
+    };
+    const tdee = calculateTDEE(profile);
     expect(tdee).toBe(2136); // 1780 * 1.2
   });
 
   it('should calculate TDEE for very active', () => {
-    const bmr = 1780;
-    const tdee = calculateTDEE(bmr, 'very_active');
-    expect(tdee).toBe(3026); // 1780 * 1.7
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 80,
+      height: 180,
+      age: 30,
+      biological_sex: 'male',
+      activity_level: 'very_active',
+      goal: 'maintain',
+    };
+    const tdee = calculateTDEE(profile);
+    expect(tdee).toBe(3071); // 1780 * 1.725 rounded
   });
 });
 
 describe('calculateNutritionRequirements', () => {
   it('should calculate requirements for cutting', () => {
-    const req = calculateNutritionRequirements(80, 180, 30, 'male', 'moderately_active', 'cut');
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 80,
+      height: 180,
+      age: 30,
+      biological_sex: 'male',
+      activity_level: 'moderate',
+      goal: 'cut',
+    };
+    const req = calculateNutritionRequirements(profile);
     
     expect(req.bmr).toBe(1780);
-    expect(req.tdee).toBe(2670); // 1780 * 1.5
-    expect(req.targetCalories).toBe(2136); // 2670 * 0.8 (-20%)
+    expect(req.tdee).toBe(2759); // 1780 * 1.55 rounded
+    expect(req.targetCalories).toBe(2207); // 2759 * 0.8 (-20%)
     expect(req.targetProtein).toBe(160); // 80 * 2.0
-    expect(req.proteinCalories).toBe(640); // 160 * 4
   });
 
   it('should calculate requirements for bulking', () => {
-    const req = calculateNutritionRequirements(70, 175, 25, 'male', 'lightly_active', 'bulk');
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 70,
+      height: 175,
+      age: 25,
+      biological_sex: 'male',
+      activity_level: 'light',
+      goal: 'bulk',
+    };
+    const req = calculateNutritionRequirements(profile);
     
     const bmr = (10 * 70) + (6.25 * 175) - (5 * 25) + 5;
-    const tdee = bmr * 1.375;
+    const tdee = Math.round(bmr * 1.375);
     expect(req.targetCalories).toBe(Math.round(tdee * 1.1)); // +10%
     expect(req.targetProtein).toBe(126); // 70 * 1.8
   });
 
   it('should calculate requirements for maintaining', () => {
-    const req = calculateNutritionRequirements(75, 178, 28, 'female', 'moderately_active', 'maintain');
+    const profile: NutritionProfile = {
+      user_id: 'test',
+      bodyweight: 75,
+      height: 178,
+      age: 28,
+      biological_sex: 'female',
+      activity_level: 'moderate',
+      goal: 'maintain',
+    };
+    const req = calculateNutritionRequirements(profile);
     
     const bmr = (10 * 75) + (6.25 * 178) - (5 * 28) - 161;
-    const tdee = bmr * 1.5;
-    expect(req.targetCalories).toBe(Math.round(tdee)); // No adjustment
+    const tdee = Math.round(bmr * 1.55);
+    expect(req.targetCalories).toBe(tdee); // No adjustment
     expect(req.targetProtein).toBe(135); // 75 * 1.8
   });
 });
 
 describe('analyzeNutritionCompliance', () => {
-  const targetProtein = 150;
-  const targetCalories = 2500;
+  const requirements: NutritionRequirements = {
+    bmr: 1780,
+    tdee: 2670,
+    targetCalories: 2500,
+    targetProtein: 150,
+    proteinPerKg: 1.8,
+  };
 
   it('should return compliant for good adherence', () => {
-    const result = analyzeNutritionCompliance(145, 2480, targetProtein, targetCalories);
+    const entries: NutritionEntry[] = [
+      { id: '1', user_id: 'test', date: new Date(), calories: 2480, protein: 145, created_at: new Date() },
+      { id: '2', user_id: 'test', date: new Date(), calories: 2520, protein: 152, created_at: new Date() },
+      { id: '3', user_id: 'test', date: new Date(), calories: 2500, protein: 150, created_at: new Date() },
+    ];
+    const result = analyzeNutritionCompliance(entries, requirements);
     
-    expect(result.proteinCompliance).toBe('compliant');
-    expect(result.calorieCompliance).toBe('compliant');
-    expect(result.alerts).toHaveLength(0);
+    expect(result.proteinCompliance).toBeGreaterThanOrEqual(90);
+    expect(result.calorieCompliance).toBeGreaterThanOrEqual(90);
+    expect(result.calorieCompliance).toBeLessThanOrEqual(110);
+    expect(result.status).toBe('compliant');
   });
 
   it('should alert on low protein', () => {
-    const result = analyzeNutritionCompliance(110, 2500, targetProtein, targetCalories);
+    const entries: NutritionEntry[] = [
+      { id: '1', user_id: 'test', date: new Date(), calories: 2500, protein: 110, created_at: new Date() },
+      { id: '2', user_id: 'test', date: new Date(), calories: 2500, protein: 115, created_at: new Date() },
+    ];
+    const result = analyzeNutritionCompliance(entries, requirements);
     
-    expect(result.proteinCompliance).toBe('low');
-    expect(result.alerts).toContain('Proteína < 80% del objetivo');
+    expect(result.proteinCompliance).toBeLessThan(80);
+    expect(result.status).toBe('critical');
+    expect(result.alerts.some(a => a.includes('CRÍTICO'))).toBe(true);
   });
 
   it('should alert on excessive calorie deficit', () => {
-    const result = analyzeNutritionCompliance(150, 1800, targetProtein, targetCalories);
+    const entries: NutritionEntry[] = [
+      { id: '1', user_id: 'test', date: new Date(), calories: 1800, protein: 150, created_at: new Date() },
+      { id: '2', user_id: 'test', date: new Date(), calories: 1850, protein: 150, created_at: new Date() },
+    ];
+    const result = analyzeNutritionCompliance(entries, requirements);
     
-    expect(result.calorieCompliance).toBe('low');
-    expect(result.alerts).toContain('Déficit calórico > 25%');
+    expect(result.calorieCompliance).toBeLessThan(75);
+    expect(result.status).toBe('critical');
+    expect(result.alerts.some(a => a.includes('Déficit excesivo'))).toBe(true);
   });
 
   it('should alert on excessive calorie surplus', () => {
-    const result = analyzeNutritionCompliance(150, 3200, targetProtein, targetCalories);
+    const entries: NutritionEntry[] = [
+      { id: '1', user_id: 'test', date: new Date(), calories: 3200, protein: 150, created_at: new Date() },
+      { id: '2', user_id: 'test', date: new Date(), calories: 3100, protein: 150, created_at: new Date() },
+    ];
+    const result = analyzeNutritionCompliance(entries, requirements);
     
-    expect(result.calorieCompliance).toBe('high');
-    expect(result.alerts).toContain('Superávit calórico > 25%');
+    expect(result.calorieCompliance).toBeGreaterThan(125);
+    expect(result.status).toBe('critical');
+    expect(result.alerts.some(a => a.includes('Superávit excesivo'))).toBe(true);
   });
 });
 
 describe('suggestCalorieAdjustment', () => {
-  it('should suggest reducing calories if gaining too fast when cutting', () => {
-    const result = suggestCalorieAdjustment(0.8, 'cut');
+  const currentCalories = 2500;
+
+  it('should suggest reducing calories if losing weight too slowly when cutting', () => {
+    const weighIns = [
+      { date: new Date('2024-01-01'), bodyweight: 80 },
+      { date: new Date('2024-01-08'), bodyweight: 79.95 }, // -0.05kg/week (too slow, target: -0.4 to -0.8)
+    ];
+    const result = suggestCalorieAdjustment(weighIns, 'cut', currentCalories);
     
     expect(result.adjustment).toBe(-100);
-    expect(result.reason).toContain('ganando peso');
+    expect(result.reason).toContain('insuficiente');
   });
 
-  it('should suggest increasing calories if not gaining when bulking', () => {
-    const result = suggestCalorieAdjustment(-0.2, 'bulk');
+  it('should suggest increasing calories if not gaining enough when bulking', () => {
+    const weighIns = [
+      { date: new Date('2024-01-01'), bodyweight: 70 },
+      { date: new Date('2024-01-08'), bodyweight: 69.95 }, // -0.05kg/week (losing, should be gaining 0.175-0.35)
+    ];
+    const result = suggestCalorieAdjustment(weighIns, 'bulk', currentCalories);
     
-    expect(result.adjustment).toBe(150);
-    expect(result.reason).toContain('perdiendo peso');
+    expect(result.adjustment).toBe(200);
+    expect(result.reason).toContain('insuficiente');
   });
 
-  it('should suggest maintaining calories if trend is appropriate', () => {
-    const result = suggestCalorieAdjustment(-0.5, 'cut');
+  it('should suggest maintaining calories if cut trend is appropriate', () => {
+    const weighIns = [
+      { date: new Date('2024-01-01'), bodyweight: 80 },
+      { date: new Date('2024-01-08'), bodyweight: 79.5 }, // -0.5kg/week (optimal for cutting)
+    ];
+    const result = suggestCalorieAdjustment(weighIns, 'cut', currentCalories);
     
     expect(result.adjustment).toBe(0);
-    expect(result.reason).toContain('apropiada');
+    expect(result.reason).toContain('óptima');
   });
 
-  it('should suggest maintaining calories for maintenance goal', () => {
-    const result = suggestCalorieAdjustment(0.3, 'maintain');
+  it('should suggest adjusting calories if weight varies during maintenance', () => {
+    const weighIns = [
+      { date: new Date('2024-01-01'), bodyweight: 75 },
+      { date: new Date('2024-01-08'), bodyweight: 75.2 }, // +0.2kg/week (0.27% change, above 0.25% threshold)
+    ];
+    const result = suggestCalorieAdjustment(weighIns, 'maintain', currentCalories);
+    
+    expect(result.adjustment).toBe(-100);
+    expect(result.reason).toContain('variando');
+  });
+
+  it('should maintain calories if weight is stable during maintenance', () => {
+    const weighIns = [
+      { date: new Date('2024-01-01'), bodyweight: 75 },
+      { date: new Date('2024-01-08'), bodyweight: 75.1 }, // +0.1kg/week (0.13% change, below 0.25% threshold)
+    ];
+    const result = suggestCalorieAdjustment(weighIns, 'maintain', currentCalories);
     
     expect(result.adjustment).toBe(0);
-    expect(result.reason).toContain('apropiado');
+    expect(result.reason).toContain('estable');
   });
 });
