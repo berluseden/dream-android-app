@@ -1,10 +1,75 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/useAuth';
 import { useExercises } from '@/hooks/useExercises';
 import { findSimilarExercises, Exercise } from '@/lib/exerciseMatching';
-import { toast } from '@/hooks/use-toast';
+import { detectPlateau, SetHistory } from '@/lib/algorithms';
+import { useToast } from '@/hooks/use-toast';
+
+/**
+ * Hook to detect if exercise has plateaued
+ * Returns plateau status and recommended substitutes
+ */
+export function usePlateauDetection(exerciseId: string, threshold: number = 3) {
+  const { user } = useAuth();
+  const { data: allExercises } = useExercises();
+
+  return useQuery<{
+    isPlateaued: boolean;
+    sessionsWithoutImprovement: number;
+    suggestedSubstitutes: Exercise[];
+  }>({
+    queryKey: ['plateau-detection', exerciseId, user?.uid],
+    queryFn: async () => {
+      if (!user?.uid || !allExercises) return {
+        isPlateaued: false,
+        sessionsWithoutImprovement: 0,
+        suggestedSubstitutes: [],
+      };
+
+      // Get last 10 sets for this exercise
+      const setsQuery = query(
+        collection(db, 'sets'),
+        where('exercise_id', '==', exerciseId),
+        where('set_type', '==', 'working')
+      );
+
+      const snapshot = await getDocs(setsQuery);
+      const sets = snapshot.docs.map(doc => doc.data());
+
+      // Convert to SetHistory format
+      const history: SetHistory[] = sets.map((set: any) => ({
+        load: set.load,
+        completed_reps: set.completed_reps,
+        rir_actual: set.rir_actual,
+        rpe: set.rpe,
+        perceived_pump: set.perceived_pump,
+        perceived_soreness: set.perceived_soreness,
+        created_at: set.created_at?.toDate() || new Date(),
+      }));
+
+      const plateauResult = detectPlateau(history, threshold);
+
+      // If plateaued, suggest alternatives
+      let suggestedSubstitutes: Exercise[] = [];
+      if (plateauResult.isPlateaued) {
+        const targetExercise = allExercises.find((ex: any) => ex.id === exerciseId);
+        if (targetExercise) {
+          const userEquipment = ['barbell', 'dumbbells', 'machine', 'bodyweight', 'cables'];
+          suggestedSubstitutes = findSimilarExercises(targetExercise, userEquipment, allExercises);
+        }
+      }
+
+      return {
+        isPlateaued: plateauResult.isPlateaued,
+        sessionsWithoutImprovement: plateauResult.sessionsWithoutImprovement,
+        suggestedSubstitutes,
+      };
+    },
+    enabled: !!exerciseId && !!user?.uid && !!allExercises,
+  });
+}
 
 export function useSuggestedSubstitutions(exerciseId: string) {
   const { data: allExercises } = useExercises();
@@ -19,7 +84,7 @@ export function useSuggestedSubstitutions(exerciseId: string) {
       if (!targetExercise) return [];
       
       // Get user equipment preferences (default to all common equipment)
-      const userEquipment = ['barbell', 'dumbbells', 'machine', 'bodyweight'];
+      const userEquipment = ['barbell', 'dumbbells', 'machine', 'bodyweight', 'cables'];
       
       return findSimilarExercises(targetExercise, userEquipment, allExercises);
     },
@@ -30,6 +95,7 @@ export function useSuggestedSubstitutions(exerciseId: string) {
 export function useSubstituteExercise() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (data: {
@@ -52,24 +118,33 @@ export function useSubstituteExercise() {
         substituted_at: Timestamp.now(),
       });
 
-      // Update pending sets for this workout+exercise to use new exercise
+      // Update ALL future pending sets for this workout+exercise to use new exercise
       const setsQuery = query(
         collection(db, 'sets'),
         where('workout_id', '==', data.workout_id),
-        where('exercise_id', '==', data.original_exercise_id),
-        where('completed_reps', '==', 0) // Only pending sets
+        where('exercise_id', '==', data.original_exercise_id)
       );
       
       const snapshot = await getDocs(setsQuery);
-      // Note: In a real implementation, you'd batch update these sets
-      // For now, we'll just record the substitution
+      
+      // Batch update sets (update pending sets only)
+      const updatePromises = snapshot.docs
+        .filter(doc => doc.data().completed_reps === 0 || !doc.data().completed_reps)
+        .map(doc => updateDoc(doc.ref, {
+          exercise_id: data.new_exercise_id,
+          notes: `Sustituido de ejercicio original. Razón: ${data.reason}`,
+        }));
+
+      await Promise.all(updatePromises);
+
+      return { updatedCount: updatePromises.length };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workoutSets'] });
-      queryClient.invalidateQueries({ queryKey: ['todayWorkout'] });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['workout-sets'] });
+      queryClient.invalidateQueries({ queryKey: ['today-workout'] });
       toast({
         title: 'Ejercicio sustituido',
-        description: 'El cambio se ha guardado correctamente',
+        description: `${result.updatedCount} series actualizadas correctamente`,
       });
     },
     onError: (error) => {

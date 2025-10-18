@@ -1,0 +1,74 @@
+{
+  "name": "nSuns 531 Hypertrophy",
+  "description": "Adaptación de nSuns 531 orientada a hipertrofia. Combina fuerza en compounds con volumen acumulado en accesorios.",
+  "level": "avanzado",
+  "frequency": 5,
+  "length_weeks": 8,
+  "focus": "powerbuilding",
+  "required_equipment": ["barbell", "dumbbells", "machine"],
+  "muscle_focus": ["chest", "back", "quads", "shoulders"],
+  "days": [
+    {
+      "name": "Bench Press Day",
+      "exercises": [
+        { "name": "Barbell Bench Press", "sets": 9, "reps": "Varied (531)", "rir": 2, "rest_seconds": 180, "notes": "531 progression: 5+ @ 85%, 3+ @ 90%, 1+ @ 95%, then volume sets" },
+        { "name": "Close-Grip Bench Press", "sets": 8, "reps": "Varied", "rir": 2, "rest_seconds": 120 },
+        { "name": "Incline Dumbbell Press", "sets": 4, "reps": "8-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Fly", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Tricep Dips", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Squat Day",
+      "exercises": [
+        { "name": "Back Squat", "sets": 9, "reps": "Varied (531)", "rir": 2, "rest_seconds": 240, "notes": "531 progression" },
+        { "name": "Sumo Deadlift", "sets": 8, "reps": "Varied", "rir": 2, "rest_seconds": 180 },
+        { "name": "Leg Press", "sets": 4, "reps": "12-15", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Curl", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Calf Raise", "sets": 5, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Overhead Press Day",
+      "exercises": [
+        { "name": "Overhead Press", "sets": 9, "reps": "Varied (531)", "rir": 2, "rest_seconds": 180, "notes": "531 progression" },
+        { "name": "Incline Bench Press", "sets": 8, "reps": "Varied", "rir": 2, "rest_seconds": 120 },
+        { "name": "Dumbbell Shoulder Press", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Dumbbell Lateral Raise", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Face Pulls", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Deadlift Day",
+      "exercises": [
+        { "name": "Conventional Deadlift", "sets": 9, "reps": "Varied (531)", "rir": 3, "rest_seconds": 300, "notes": "531 progression" },
+        { "name": "Front Squat", "sets": 8, "reps": "Varied", "rir": 2, "rest_seconds": 180 },
+        { "name": "Romanian Deadlift", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Extension", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Abs Rollout", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Back & Arms Day",
+      "exercises": [
+        { "name": "Weighted Pull-ups", "sets": 5, "reps": "6-8", "rir": 2, "rest_seconds": 180 },
+        { "name": "Barbell Row", "sets": 5, "reps": "8-10", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Row", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Barbell Curl", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 90 },
+        { "name": "Cable Pushdown", "sets": 4, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Hammer Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 }
+      ]
+    }
+  ],
+  "volume_landmarks": {
+    "chest": { "mev": 12, "mav": 18, "mrv": 24 },
+    "back": { "mev": 14, "mav": 20, "mrv": 26 },
+    "quads": { "mev": 12, "mav": 18, "mrv": 24 },
+    "hamstrings": { "mev": 10, "mav": 16, "mrv": 22 },
+    "shoulders": { "mev": 12, "mav": 18, "mrv": 24 },
+    "biceps": { "mev": 8, "mav": 14, "mrv": 20 },
+    "triceps": { "mev": 10, "mav": 16, "mrv": 22 },
+    "calves": { "mev": 12, "mav": 20, "mrv": 30 }
+  },
+  "scientific_basis": "531 progression for main lifts + volume work for hypertrophy. Based on Wendler's 531 principles combined with Schoenfeld (2023) volume recommendations."
+}

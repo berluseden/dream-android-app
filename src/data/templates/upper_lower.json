@@ -1,0 +1,67 @@
+{
+  "name": "Upper Lower 4×",
+  "description": "Programa clásico de 4 días con 2× frecuencia por músculo. Equilibrio óptimo entre volumen, frecuencia y recuperación.",
+  "level": "intermedio",
+  "frequency": 4,
+  "length_weeks": 8,
+  "focus": "powerbuilding",
+  "required_equipment": ["barbell", "dumbbells", "machine"],
+  "muscle_focus": ["chest", "back", "quads", "shoulders"],
+  "days": [
+    {
+      "name": "Upper Power",
+      "exercises": [
+        { "name": "Barbell Bench Press", "sets": 4, "reps": "4-6", "rir": 3, "rest_seconds": 240 },
+        { "name": "Barbell Row", "sets": 4, "reps": "4-6", "rir": 3, "rest_seconds": 240 },
+        { "name": "Overhead Press", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 180 },
+        { "name": "Weighted Pull-ups", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 180 },
+        { "name": "Barbell Curl", "sets": 2, "reps": "8-10", "rir": 2, "rest_seconds": 120 },
+        { "name": "Tricep Dips", "sets": 2, "reps": "8-10", "rir": 2, "rest_seconds": 120 }
+      ]
+    },
+    {
+      "name": "Lower Power",
+      "exercises": [
+        { "name": "Back Squat", "sets": 5, "reps": "4-6", "rir": 3, "rest_seconds": 300 },
+        { "name": "Conventional Deadlift", "sets": 3, "reps": "4-6", "rir": 3, "rest_seconds": 300 },
+        { "name": "Leg Press", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Curl", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 90 },
+        { "name": "Calf Raise", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Upper Hypertrophy",
+      "exercises": [
+        { "name": "Incline Dumbbell Press", "sets": 4, "reps": "8-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Row", "sets": 4, "reps": "8-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Dumbbell Shoulder Press", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Lat Pulldown", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 90 },
+        { "name": "Cable Lateral Raise", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Hammer Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Pushdown", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Lower Hypertrophy",
+      "exercises": [
+        { "name": "Front Squat", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Romanian Deadlift", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Bulgarian Split Squat", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Extension", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Seated Leg Curl", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Seated Calf Raise", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    }
+  ],
+  "volume_landmarks": {
+    "chest": { "mev": 10, "mav": 14, "mrv": 20 },
+    "back": { "mev": 12, "mav": 16, "mrv": 22 },
+    "quads": { "mev": 10, "mav": 14, "mrv": 20 },
+    "hamstrings": { "mev": 8, "mav": 12, "mrv": 18 },
+    "shoulders": { "mev": 10, "mav": 14, "mrv": 20 },
+    "biceps": { "mev": 6, "mav": 10, "mrv": 16 },
+    "triceps": { "mev": 8, "mav": 12, "mrv": 18 },
+    "calves": { "mev": 12, "mav": 18, "mrv": 28 }
+  },
+  "scientific_basis": "Combines power (4-6 reps, RIR 3) and hypertrophy (8-12 reps, RIR 1-2) training. Based on Helms et al. (2023) powerbuilding principles and Schoenfeld (2023) load spectrum research."
+}

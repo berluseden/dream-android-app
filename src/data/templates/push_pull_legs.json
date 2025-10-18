@@ -1,0 +1,87 @@
+{
+  "name": "Push Pull Legs 2×",
+  "description": "Programa de 6 días por semana con frecuencia 2× por grupo muscular. Ideal para intermedios/avanzados con alta capacidad de recuperación.",
+  "level": "intermedio",
+  "frequency": 6,
+  "length_weeks": 6,
+  "focus": "hypertrophy",
+  "required_equipment": ["barbell", "dumbbells", "cables", "machine"],
+  "muscle_focus": ["chest", "back", "quads", "shoulders"],
+  "days": [
+    {
+      "name": "Push A",
+      "exercises": [
+        { "name": "Barbell Bench Press", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Incline Dumbbell Press", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Dumbbell Shoulder Press", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Lateral Raise", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Tricep Pushdown", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Overhead Tricep Extension", "sets": 2, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Pull A",
+      "exercises": [
+        { "name": "Conventional Deadlift", "sets": 3, "reps": "6-8", "rir": 3, "rest_seconds": 240 },
+        { "name": "Pull-ups", "sets": 3, "reps": "8-12", "rir": 2, "rest_seconds": 180 },
+        { "name": "Barbell Row", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 120 },
+        { "name": "Face Pulls", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 90 },
+        { "name": "Barbell Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Hammer Curl", "sets": 2, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Legs A",
+      "exercises": [
+        { "name": "Back Squat", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 240 },
+        { "name": "Romanian Deadlift", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 180 },
+        { "name": "Leg Press", "sets": 3, "reps": "12-15", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Curl", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Calf Raise (Standing)", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Push B",
+      "exercises": [
+        { "name": "Incline Barbell Press", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Flat Dumbbell Press", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Machine Shoulder Press", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Dumbbell Lateral Raise", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Dips", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Overhead Extension", "sets": 2, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Pull B",
+      "exercises": [
+        { "name": "Weighted Pull-ups", "sets": 4, "reps": "6-8", "rir": 2, "rest_seconds": 180 },
+        { "name": "Cable Row (Seated)", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Lat Pulldown", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Rear Delt Fly", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 90 },
+        { "name": "Incline Dumbbell Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Curl", "sets": 2, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Legs B",
+      "exercises": [
+        { "name": "Front Squat", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 240 },
+        { "name": "Bulgarian Split Squat", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Extension", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Seated Leg Curl", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Calf Raise (Seated)", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    }
+  ],
+  "volume_landmarks": {
+    "chest": { "mev": 10, "mav": 16, "mrv": 22 },
+    "back": { "mev": 12, "mav": 18, "mrv": 25 },
+    "quads": { "mev": 10, "mav": 16, "mrv": 22 },
+    "hamstrings": { "mev": 8, "mav": 14, "mrv": 20 },
+    "shoulders": { "mev": 12, "mav": 18, "mrv": 26 },
+    "biceps": { "mev": 8, "mav": 14, "mrv": 20 },
+    "triceps": { "mev": 10, "mav": 16, "mrv": 22 },
+    "calves": { "mev": 12, "mav": 20, "mrv": 30 }
+  },
+  "scientific_basis": "Based on Renaissance Periodization volume landmarks (Israetel et al., 2023) and Schoenfeld (2023) meta-analysis on optimal training frequency (2-3x per muscle per week)."
+}

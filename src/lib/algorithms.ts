@@ -21,6 +21,7 @@ export interface LoadSuggestion {
   reps: number;
   reason: string;
   explanation?: string;
+  reason_explained?: string; // NEW: Detailed explanation for UI tooltip
   alternative?: {
     load: number;
     reps: number;
@@ -61,6 +62,13 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
       reps: targetReps,
       reason: '+5% carga',
       explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)} y completaste ${lastReps} reps. Estás listo para más peso.`,
+      reason_explained: `📈 **Por qué aumentar peso:**\n\n` +
+        `Tu RIR promedio de ${avgRir.toFixed(1)} indica que estás llegando muy cerca del fallo muscular (0 = fallo). ` +
+        `Además, completaste ${lastReps} de ${targetReps} reps objetivo.\n\n` +
+        `**Principio científico:** Cuando trabajas consistentemente con RIR ≤ 1 y completas las reps, ` +
+        `has demostrado adaptación neuromuscular. Un incremento de 5% (~${Math.round(lastLoad * 0.05)}kg) ` +
+        `mantiene la carga en el rango de hipertrofia (6-30 reps) según Schoenfeld (2023).\n\n` +
+        `**Alternativa:** Si prefieres progresión vertical (más reps), puedes mantener ${lastLoad}kg y hacer ${targetReps + 1} reps.`,
       alternative: {
         load: lastLoad,
         reps: Math.min(targetReps + 1, 15),
@@ -76,6 +84,14 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
       reps: Math.min(targetReps + 1, 15),
       reason: 'Aumentar repeticiones',
       explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)}. Mantén el peso y aumenta reps para acumular más volumen.`,
+      reason_explained: `📊 **Por qué aumentar repeticiones:**\n\n` +
+        `Tu RIR de ${avgRir.toFixed(1)} indica que estás trabajando cerca del fallo (óptimo para hipertrofia). ` +
+        `Sin embargo, aún no has alcanzado la máxima capacidad en este peso.\n\n` +
+        `**Principio científico:** La progresión vertical (más reps con mismo peso) acumula volumen ` +
+        `sin aumentar carga absoluta, reduciendo fatiga sistémica. Según Helms (2023), esto es ideal ` +
+        `cuando RIR está en 1-2 (muy cerca del fallo pero no sobreentrenando).\n\n` +
+        `**Alternativa:** Si prefieres progresión horizontal, puedes aumentar ${Math.round(lastLoad * 0.025)}kg (+2.5%) ` +
+        `y mantener ${targetReps} reps.`,
       alternative: {
         load: Math.round(lastLoad * 1.025),
         reps: targetReps,
@@ -91,6 +107,14 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
       reps: targetReps,
       reason: 'Reducir carga: RIR alto',
       explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)}, demasiado alto. Reduce peso para trabajar más cerca del fallo.`,
+      reason_explained: `⚠️ **Por qué reducir peso:**\n\n` +
+        `Tu RIR de ${avgRir.toFixed(1)} indica que estás dejando ${avgRir.toFixed(0)}+ reps en reserva. ` +
+        `Esto significa que NO estás estimulando suficiente adaptación muscular.\n\n` +
+        `**Principio científico:** Para hipertrofia, la evidencia (Schoenfeld 2023, Hackett 2024) muestra que ` +
+        `sets con RIR 0-3 generan mayor crecimiento muscular. RIR > 3 es "junk volume" (volumen basura).\n\n` +
+        `**Acción recomendada:** Reduce ${Math.round(lastLoad * 0.10)}kg (-10%) y trabaja con RIR 1-2. ` +
+        `Esto maximiza estímulo sin fatiga excesiva.\n\n` +
+        `**Alternativa:** Reduce solo -5% si crees que fue un día malo (fatiga, sueño insuficiente).`,
       alternative: {
         load: Math.round(lastLoad * 0.95),
         reps: targetReps + 2,
@@ -104,6 +128,13 @@ export function calculateNextLoad(history: SetHistory[], targetReps: number = 10
     reps: targetReps,
     reason: 'Mantener',
     explanation: `Tu RIR promedio fue ${avgRir.toFixed(1)}, en rango óptimo. Continúa con esta carga.`,
+    reason_explained: `✅ **Por qué mantener:**\n\n` +
+      `Tu RIR de ${avgRir.toFixed(1)} está en el rango óptimo (1.5-3.0) para hipertrofia. ` +
+      `Estás trabajando con suficiente intensidad sin generar fatiga excesiva.\n\n` +
+      `**Principio científico:** Según Israetel (RP Hypertrophy), mantener RIR consistente en 1-3 ` +
+      `permite acumular volumen semanal sin necesidad de deload prematuro.\n\n` +
+      `**Acción recomendada:** Mantén ${lastLoad}kg × ${targetReps} reps. ` +
+      `Si en 2-3 sesiones tu RIR baja a ≤1, entonces aumenta peso.`,
     alternative: null
   };
 }

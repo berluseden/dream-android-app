@@ -1,0 +1,91 @@
+{
+  "name": "Arnold Split 6D",
+  "description": "Programa avanzado de 6 días creado por Arnold Schwarzenegger. Alta frecuencia (2×) para todos los grupos musculares.",
+  "level": "avanzado",
+  "frequency": 6,
+  "length_weeks": 6,
+  "focus": "hypertrophy",
+  "required_equipment": ["barbell", "dumbbells", "cables", "machine"],
+  "muscle_focus": ["chest", "back", "arms", "shoulders"],
+  "days": [
+    {
+      "name": "Chest & Back A",
+      "exercises": [
+        { "name": "Barbell Bench Press", "sets": 5, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Weighted Pull-ups", "sets": 5, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Incline Dumbbell Press", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Barbell Row", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Fly", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Row", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Shoulders & Arms A",
+      "exercises": [
+        { "name": "Overhead Press", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Dumbbell Lateral Raise", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Rear Delt Fly", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 90 },
+        { "name": "Barbell Curl", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 120 },
+        { "name": "Close-Grip Bench Press", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 120 },
+        { "name": "Hammer Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Pushdown", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Legs & Abs A",
+      "exercises": [
+        { "name": "Back Squat", "sets": 5, "reps": "8-10", "rir": 2, "rest_seconds": 240 },
+        { "name": "Leg Press", "sets": 4, "reps": "12-15", "rir": 2, "rest_seconds": 120 },
+        { "name": "Leg Extension", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Leg Curl", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Calf Raise", "sets": 5, "reps": "15-20", "rir": 1, "rest_seconds": 60 },
+        { "name": "Hanging Leg Raise", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "Chest & Back B",
+      "exercises": [
+        { "name": "Incline Barbell Press", "sets": 5, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "T-Bar Row", "sets": 5, "reps": "8-10", "rir": 2, "rest_seconds": 180 },
+        { "name": "Flat Dumbbell Press", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Lat Pulldown", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Dips", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Face Pulls", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Shoulders & Arms B",
+      "exercises": [
+        { "name": "Dumbbell Shoulder Press", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Cable Lateral Raise", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Reverse Pec Deck", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 90 },
+        { "name": "Incline Dumbbell Curl", "sets": 4, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Overhead Tricep Extension", "sets": 4, "reps": "10-12", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Curl", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Cable Kickback", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90 }
+      ]
+    },
+    {
+      "name": "Legs & Abs B",
+      "exercises": [
+        { "name": "Front Squat", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 240 },
+        { "name": "Romanian Deadlift", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 180 },
+        { "name": "Bulgarian Split Squat", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120 },
+        { "name": "Seated Leg Curl", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 90 },
+        { "name": "Seated Calf Raise", "sets": 5, "reps": "15-20", "rir": 1, "rest_seconds": 60 },
+        { "name": "Cable Crunch", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 60 }
+      ]
+    }
+  ],
+  "volume_landmarks": {
+    "chest": { "mev": 12, "mav": 18, "mrv": 24 },
+    "back": { "mev": 14, "mav": 20, "mrv": 28 },
+    "quads": { "mev": 10, "mav": 16, "mrv": 22 },
+    "hamstrings": { "mev": 8, "mav": 14, "mrv": 20 },
+    "shoulders": { "mev": 14, "mav": 20, "mrv": 28 },
+    "biceps": { "mev": 10, "mav": 16, "mrv": 22 },
+    "triceps": { "mev": 10, "mav": 16, "mrv": 22 },
+    "calves": { "mev": 14, "mav": 22, "mrv": 32 }
+  },
+  "scientific_basis": "Arnold's classic split adapted with modern volume landmarks. High frequency (2×) aligns with Schoenfeld (2023) findings on optimal hypertrophy stimulus."
+}
