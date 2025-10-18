@@ -29,6 +29,7 @@ import Unauthorized from "./pages/Unauthorized";
 
 // Lazy load admin pages para reducir bundle inicial
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminCreateUser = lazy(() => import("./pages/admin/AdminCreateUser"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminCoaches = lazy(() => import("./pages/admin/AdminCoaches"));
@@ -183,6 +184,11 @@ const App = () => (
               <Route index element={
                 <Suspense fallback={<AdminPageLoader />}>
                   <AdminDashboard />
+                </Suspense>
+              } />
+              <Route path="create-user" element={
+                <Suspense fallback={<AdminPageLoader />}>
+                  <AdminCreateUser />
                 </Suspense>
               } />
               <Route path="users" element={

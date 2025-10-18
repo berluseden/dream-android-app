@@ -1,13 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   User,
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   signOut as firebaseSignOut,
-  onAuthStateChanged,
-  updateProfile
+  onAuthStateChanged
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -22,9 +18,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isCoach: boolean;
   isClient: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -96,49 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, []);
 
-  const signUp = async (
-    email: string, 
-    password: string, 
-    name: string
-  ) => {
-    try {
-      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      await updateProfile(newUser, { displayName: name });
-      
-      // Create user profile
-      await setDoc(doc(db, 'users', newUser.uid), {
-        email,
-        name,
-        equipment: [],
-        level: 'novato',
-        experience_years: 0,
-        goals: '',
-        units: 'kg',
-        coach_id: null,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
-      });
-      
-      // Assign default role - usar userId como document ID
-      await setDoc(doc(db, 'user_roles', newUser.uid), {
-        role: 'user',
-      });
-      
-      toast({
-        title: "¡Registro exitoso!",
-        description: "Bienvenido a App Hipertrofia",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error de registro",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -150,46 +101,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Error de inicio de sesión",
         description: "Email o contraseña incorrectos",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const { user: googleUser } = await signInWithPopup(auth, provider);
-      
-      const existingProfile = await fetchProfile(googleUser.uid);
-      
-      if (!existingProfile) {
-        await setDoc(doc(db, 'users', googleUser.uid), {
-          email: googleUser.email,
-          name: googleUser.displayName || 'Usuario',
-          equipment: [],
-          level: 'novato',
-          experience_years: 0,
-          goals: '',
-          units: 'kg',
-          coach_id: null,
-          created_at: serverTimestamp(),
-          updated_at: serverTimestamp(),
-        });
-        
-        await setDoc(doc(db, 'user_roles', googleUser.uid), {
-          role: 'user',
-        });
-      }
-      
-      toast({
-        title: "¡Sesión iniciada!",
-        description: "Bienvenido",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error de Google Sign-In",
-        description: error.message,
         variant: "destructive",
       });
       throw error;
@@ -237,9 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         isCoach,
         isClient,
-        signUp,
         signIn,
-        signInWithGoogle,
         signOut,
         refreshProfile,
       }}

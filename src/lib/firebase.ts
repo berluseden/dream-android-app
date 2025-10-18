@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { 
-  getFirestore, 
+  getFirestore,
   connectFirestoreEmulator, 
   enableIndexedDbPersistence
 } from 'firebase/firestore';
@@ -44,12 +44,16 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 
-// Enable offline persistence
-enableIndexedDbPersistence(db).catch((err) => {
+// Enable offline persistence (solo intentar, ignorar errores)
+enableIndexedDbPersistence(db, {
+  forceOwnership: false // Permite múltiples tabs
+}).catch((err) => {
   if (err.code === 'failed-precondition') {
-    logger.warn('Persistence: Multiple tabs open');
+    logger.warn('⚠️ Persistence: Multiple tabs open, using memory cache');
   } else if (err.code === 'unimplemented') {
-    logger.warn('Persistence not supported');
+    logger.warn('⚠️ Persistence: Not supported in this browser');
+  } else {
+    logger.warn('⚠️ Persistence error:', err);
   }
 });
 

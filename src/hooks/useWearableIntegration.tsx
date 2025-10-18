@@ -1,6 +1,9 @@
 /**
  * Placeholder hook for future wearable integrations
  * TODO: Integrate with Apple HealthKit / Google Fit / Fitbit
+ * 
+ * @status NOT_IMPLEMENTED
+ * @priority LOW
  */
 
 export interface WearableData {
@@ -16,27 +19,25 @@ export interface WearableData {
 }
 
 export function useWearableIntegration() {
-  // TODO: Implement actual integrations
+  // Placeholder implementation - not currently used
   const isAvailable = false;
   
   const connect = async (provider: 'apple' | 'google' | 'fitbit') => {
-    console.log(`[PLACEHOLDER] Connecting to ${provider} Health...`);
-    // TODO: OAuth flow for wearable provider
+    // OAuth flow for wearable provider would go here
     throw new Error('Wearables integration not implemented yet');
   };
   
   const disconnect = async () => {
-    console.log('[PLACEHOLDER] Disconnecting wearable...');
+    // Disconnect logic would go here
   };
   
   const syncWorkouts = async (): Promise<WearableData[]> => {
-    console.log('[PLACEHOLDER] Syncing workouts from wearable...');
-    // TODO: Fetch data from provider API
+    // Fetch data from provider API would go here
     return [];
   };
   
   const getLatestData = async (): Promise<WearableData | null> => {
-    console.log('[PLACEHOLDER] Getting latest wearable data...');
+    // Get latest data would go here
     return null;
   };
 

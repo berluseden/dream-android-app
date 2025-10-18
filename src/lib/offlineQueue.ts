@@ -1,5 +1,6 @@
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import { logger } from './logger';
 
 interface QueuedAction {
   id: string;
@@ -46,10 +47,10 @@ export const offlineQueue = {
         await offlineQueue.executeAction(action);
         offlineQueue.remove(action.id);
       } catch (error) {
-        console.error('Error procesando acción offline:', error);
+        logger.error('Error procesando acción offline:', error);
         
         if (action.retries >= MAX_RETRIES) {
-          console.error('Max reintentos alcanzados, removiendo acción');
+          logger.warn('Max reintentos alcanzados, removiendo acción', action.id);
           offlineQueue.remove(action.id);
         } else {
           const queue = offlineQueue.getAll();
@@ -81,7 +82,8 @@ export const offlineQueue = {
 // Auto-procesar cuando se recupera conexión
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    console.log('Conexión recuperada, procesando cola offline');
+    logger.info('Conexión recuperada, procesando cola offline');
     offlineQueue.process();
   });
 }
+

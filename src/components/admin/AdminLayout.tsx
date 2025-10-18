@@ -9,10 +9,12 @@ import {
   Settings,
   FileText,
   LayoutDashboard,
+  UserPlus,
 } from 'lucide-react';
 
 const navItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard, exact: true },
+  { title: 'Crear Usuario', url: '/admin/create-user', icon: UserPlus },
   { title: 'Usuarios', url: '/admin/users', icon: Users },
   { title: 'Roles', url: '/admin/roles', icon: Shield },
   { title: 'Coaches', url: '/admin/coaches', icon: UserCog },

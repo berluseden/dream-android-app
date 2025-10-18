@@ -79,7 +79,6 @@ export function useCloneTemplate() {
     mutationFn: async (templateId: string) => {
       // This would create a new mesocycle based on the template
       // Implementation depends on your mesocycle creation logic
-      console.log('Cloning template:', templateId);
       
       // Placeholder - actual implementation would create mesocycle
       return { success: true };

@@ -2,6 +2,8 @@
  * Utilidades de gestos móviles con haptic feedback
  */
 
+import { logger } from './logger';
+
 export const vibrate = (pattern: number | number[] = 50) => {
   if ('vibrate' in navigator) {
     navigator.vibrate(pattern);
@@ -27,21 +29,21 @@ let wakeLock: WakeLockSentinel | null = null;
 
 export const requestWakeLock = async (): Promise<boolean> => {
   if (!('wakeLock' in navigator)) {
-    console.warn('Wake Lock API no soportada');
+    logger.warn('Wake Lock API no soportada');
     return false;
   }
 
   try {
     wakeLock = await navigator.wakeLock.request('screen');
-    console.log('Wake Lock activado');
+    logger.info('Wake Lock activado');
     
     wakeLock.addEventListener('release', () => {
-      console.log('Wake Lock liberado');
+      logger.info('Wake Lock liberado');
     });
     
     return true;
   } catch (err) {
-    console.error('Error activando Wake Lock:', err);
+    logger.error('Error activando Wake Lock:', err);
     return false;
   }
 };
@@ -85,8 +87,9 @@ export const shareWorkout = async (data: {
     return true;
   } catch (err) {
     if ((err as Error).name !== 'AbortError') {
-      console.error('Error compartiendo:', err);
+      logger.error('Error compartiendo:', err);
     }
     return false;
   }
 };
+
