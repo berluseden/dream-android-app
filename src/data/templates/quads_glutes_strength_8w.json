@@ -1,0 +1,32 @@
+{
+  "name": "Quads & Glutes Strength 8× Weeks",
+  "description": "Bloque de fuerza para cuádriceps y glúteos (8 semanas) con accesorios orientados a hipertrofia.",
+  "level": "intermediate",
+  "frequency": 4,
+  "length_weeks": 8,
+  "focus": "strength",
+  "required_equipment": ["barbell", "rack", "machine"],
+  "muscle_focus": ["quads", "glutes", "hamstrings"],
+  "days": [
+    {"name": "Squat Heavy", "exercises": [
+      {"name": "Back Squat", "sets": 5, "reps": "3-5", "rir": 2, "rest_seconds": 240},
+      {"name": "Front Squat", "sets": 3, "reps": "3-5", "rir": 2, "rest_seconds": 210},
+      {"name": "Leg Extension", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Hinge & Posterior", "exercises": [
+      {"name": "Romanian Deadlift", "sets": 4, "reps": "4-6", "rir": 2, "rest_seconds": 210},
+      {"name": "Hip Thrust", "sets": 4, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Leg Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Quads Volume", "exercises": [
+      {"name": "Hack Squat (Machine)", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 150},
+      {"name": "Bulgarian Split Squat", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Leg Press", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Glutes & Calves", "exercises": [
+      {"name": "Hip Thrust (Smith)", "sets": 4, "reps": "8-10", "rir": 1, "rest_seconds": 120},
+      {"name": "Cable Pull Through", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90},
+      {"name": "Calf Raise (Seated)", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 60}
+    ]}
+  ]
+}

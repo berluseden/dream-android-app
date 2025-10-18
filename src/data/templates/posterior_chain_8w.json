@@ -1,0 +1,31 @@
+{
+  "name": "Posterior Chain 8× Weeks",
+  "description": "Especialización de cadena posterior (espalda + isquios + glúteos) con énfasis en bisagra y tracción.",
+  "level": "intermediate",
+  "frequency": 4,
+  "length_weeks": 8,
+  "focus": "powerbuilding",
+  "required_equipment": ["barbell", "dumbbells", "cables", "machine"],
+  "muscle_focus": ["back", "hamstrings", "glutes"],
+  "days": [
+    {"name": "Hinge & Lats", "exercises": [
+      {"name": "Romanian Deadlift", "sets": 4, "reps": "6-8", "rir": 2, "rest_seconds": 180},
+      {"name": "Weighted Pull-ups", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "T-Bar Row", "sets": 3, "reps": "8-10", "rir": 2, "rest_seconds": 120}
+    ]},
+    {"name": "Quads Maintenance", "exercises": [
+      {"name": "Front Squat", "sets": 3, "reps": "6-8", "rir": 3, "rest_seconds": 180},
+      {"name": "Leg Extension", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Back Thickness", "exercises": [
+      {"name": "Barbell Row", "sets": 4, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Chest Supported Row", "sets": 3, "reps": "8-10", "rir": 2, "rest_seconds": 120},
+      {"name": "Straight Arm Pulldown", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Glutes & Hamstrings", "exercises": [
+      {"name": "Hip Thrust", "sets": 4, "reps": "8-10", "rir": 1, "rest_seconds": 120},
+      {"name": "Seated Leg Curl", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90},
+      {"name": "Back Extensions", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90}
+    ]}
+  ]
+}

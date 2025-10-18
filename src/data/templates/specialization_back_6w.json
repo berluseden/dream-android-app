@@ -1,0 +1,37 @@
+{
+  "name": "Back Specialization 6× Weeks",
+  "description": "Bloque de especialización de espalda con foco en dorsales y parte media. Volumen de empuje en mantenimiento.",
+  "level": "advanced",
+  "frequency": 5,
+  "length_weeks": 6,
+  "focus": "hypertrophy",
+  "required_equipment": ["barbell", "dumbbells", "cables", "machine"],
+  "muscle_focus": ["back", "rear_delts", "biceps"],
+  "days": [
+    {"name": "Back Power", "exercises": [
+      {"name": "Weighted Pull-ups", "sets": 4, "reps": "4-6", "rir": 2, "rest_seconds": 180},
+      {"name": "Barbell Row", "sets": 4, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Chest Supported Row", "sets": 3, "reps": "8-10", "rir": 2, "rest_seconds": 120}
+    ]},
+    {"name": "Push/Legs Maintenance", "exercises": [
+      {"name": "Incline Dumbbell Press", "sets": 3, "reps": "8-10", "rir": 2, "rest_seconds": 120},
+      {"name": "Overhead Press", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Front Squat", "sets": 3, "reps": "6-8", "rir": 3, "rest_seconds": 180}
+    ]},
+    {"name": "Lats Focus", "exercises": [
+      {"name": "Lat Pulldown", "sets": 4, "reps": "8-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Seated Cable Row", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Straight Arm Pulldown", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Upper Back & Rear Delts", "exercises": [
+      {"name": "Rear Delt Fly", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 75},
+      {"name": "Face Pulls", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75},
+      {"name": "Incline Dumbbell Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Back Density", "exercises": [
+      {"name": "T-Bar Row", "sets": 4, "reps": "8-10", "rir": 2, "rest_seconds": 120},
+      {"name": "Single Arm DB Row", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Cable Row (Wide)", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90}
+    ]}
+  ]
+}

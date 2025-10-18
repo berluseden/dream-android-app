@@ -1,0 +1,36 @@
+{
+  "name": "Delts Specialization 6× Weeks",
+  "description": "Bloque de especialización de hombros (deltoides) con énfasis en lateral y posterior. Empuje/espalda en mantenimiento.",
+  "level": "advanced",
+  "frequency": 5,
+  "length_weeks": 6,
+  "focus": "hypertrophy",
+  "required_equipment": ["dumbbells", "cables", "machine", "smith"],
+  "muscle_focus": ["shoulders", "rear_delts"],
+  "days": [
+    {"name": "Delts Power", "exercises": [
+      {"name": "Overhead Press", "sets": 4, "reps": "4-6", "rir": 2, "rest_seconds": 180},
+      {"name": "Machine Shoulder Press", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Weighted Pull-ups", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 150}
+    ]},
+    {"name": "Side Delts A", "exercises": [
+      {"name": "Dumbbell Lateral Raise", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 75},
+      {"name": "Cable Lateral Raise", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 75},
+      {"name": "Rear Delt Fly", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Maintenance Push/Pull", "exercises": [
+      {"name": "Barbell Bench Press", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Seated Cable Row", "sets": 3, "reps": "8-10", "rir": 2, "rest_seconds": 120}
+    ]},
+    {"name": "Side Delts B", "exercises": [
+      {"name": "Cable Lateral Raise", "sets": 4, "reps": "12-15", "rir": 1, "rest_seconds": 75},
+      {"name": "Machine Lateral Raise", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75},
+      {"name": "Face Pulls", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Rear Delts Focus", "exercises": [
+      {"name": "Reverse Pec Deck", "sets": 4, "reps": "15-20", "rir": 1, "rest_seconds": 75},
+      {"name": "Rear Delt Row", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 90},
+      {"name": "Incline Dumbbell Curl", "sets": 2, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]}
+  ]
+}

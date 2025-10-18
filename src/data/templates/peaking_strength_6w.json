@@ -1,0 +1,32 @@
+{
+  "name": "Peaking Strength 6× Weeks",
+  "description": "Ciclo de pico de fuerza (6 semanas) con reducción de volumen y aumento de intensidad. Ideal para test de 1RM o mock meet.",
+  "level": "advanced",
+  "frequency": 4,
+  "length_weeks": 6,
+  "focus": "strength",
+  "required_equipment": ["barbell", "rack"],
+  "muscle_focus": ["chest", "back", "quads", "hamstrings"],
+  "days": [
+    {"name": "Bench Intensity", "exercises": [
+      {"name": "Barbell Bench Press", "sets": 5, "reps": "3-2", "rir": 1, "rest_seconds": 240},
+      {"name": "Close-Grip Bench", "sets": 3, "reps": "4-6", "rir": 1, "rest_seconds": 180},
+      {"name": "Rear Delt Fly", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Squat Intensity", "exercises": [
+      {"name": "Back Squat", "sets": 5, "reps": "3-2", "rir": 1, "rest_seconds": 240},
+      {"name": "Paused Squat", "sets": 3, "reps": "3-4", "rir": 1, "rest_seconds": 210},
+      {"name": "Leg Curl", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Deadlift Intensity", "exercises": [
+      {"name": "Conventional Deadlift", "sets": 5, "reps": "3-2", "rir": 1, "rest_seconds": 240},
+      {"name": "Romanian Deadlift", "sets": 3, "reps": "4-6", "rir": 1, "rest_seconds": 180},
+      {"name": "Back Extensions", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Upper/Accessories", "exercises": [
+      {"name": "Incline Dumbbell Press", "sets": 3, "reps": "6-8", "rir": 1, "rest_seconds": 150},
+      {"name": "Seated Cable Row", "sets": 3, "reps": "8-10", "rir": 1, "rest_seconds": 120},
+      {"name": "Face Pulls", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75}
+    ]}
+  ]
+}

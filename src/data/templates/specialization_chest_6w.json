@@ -1,0 +1,41 @@
+{
+  "name": "Chest Specialization 6× Weeks",
+  "description": "Bloque de especialización de pecho de 6 semanas: alta frecuencia en empujes, volumen controlado en tirones y piernas.",
+  "level": "advanced",
+  "frequency": 5,
+  "length_weeks": 6,
+  "focus": "hypertrophy",
+  "required_equipment": ["barbell", "dumbbells", "cables", "machine"],
+  "muscle_focus": ["chest", "shoulders", "triceps"],
+  "days": [
+    {"name": "Chest Power", "exercises": [
+      {"name": "Barbell Bench Press", "sets": 5, "reps": "4-6", "rir": 2, "rest_seconds": 240},
+      {"name": "Incline Barbell Press", "sets": 4, "reps": "6-8", "rir": 2, "rest_seconds": 180},
+      {"name": "Weighted Dips", "sets": 3, "reps": "6-8", "rir": 2, "rest_seconds": 150},
+      {"name": "Chest Supported Row", "sets": 3, "reps": "8-10", "rir": 2, "rest_seconds": 120}
+    ]},
+    {"name": "Back/Legs Maintenance", "exercises": [
+      {"name": "Romanian Deadlift", "sets": 3, "reps": "6-8", "rir": 3, "rest_seconds": 180},
+      {"name": "Front Squat", "sets": 3, "reps": "6-8", "rir": 3, "rest_seconds": 180},
+      {"name": "Lat Pulldown", "sets": 3, "reps": "10-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Leg Curl", "sets": 2, "reps": "12-15", "rir": 1, "rest_seconds": 90}
+    ]},
+    {"name": "Chest Hypertrophy A", "exercises": [
+      {"name": "Incline Dumbbell Press", "sets": 4, "reps": "8-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Machine Chest Press", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90},
+      {"name": "Cable Fly (Mid)", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 75},
+      {"name": "Lateral Raise", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Upper Back Support", "exercises": [
+      {"name": "Seated Cable Row", "sets": 4, "reps": "10-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Rear Delt Fly", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75},
+      {"name": "Face Pulls", "sets": 3, "reps": "15-20", "rir": 1, "rest_seconds": 75}
+    ]},
+    {"name": "Chest Hypertrophy B", "exercises": [
+      {"name": "Flat Dumbbell Press", "sets": 4, "reps": "8-12", "rir": 2, "rest_seconds": 120},
+      {"name": "Incline Smith Press", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90},
+      {"name": "Cable Fly (Low)", "sets": 3, "reps": "12-15", "rir": 1, "rest_seconds": 75},
+      {"name": "Overhead Tricep Extension", "sets": 3, "reps": "10-12", "rir": 1, "rest_seconds": 90}
+    ]}
+  ]
+}

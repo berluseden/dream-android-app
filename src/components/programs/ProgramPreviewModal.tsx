@@ -72,7 +72,7 @@ export function ProgramPreviewModal({
                     <CardContent className="pt-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium">{block.exercise_name}</h4>
+                          <h4 className="font-medium">{block.exercise_name || block.exercise}</h4>
                           <p className="text-sm text-muted-foreground mt-1">
                             {block.sets} × {block.rep_range_min}-{block.rep_range_max} reps
                             {' · '}
