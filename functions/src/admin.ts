@@ -12,14 +12,25 @@ async function requireAdmin(context: functions.https.CallableContext) {
     throw new functions.https.HttpsError('unauthenticated', 'Usuario no autenticado');
   }
   
-  const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
-  const role = roleDoc.data()?.role;
-  
-  if (role !== 'admin') {
-    throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
+  try {
+    // Lectura directa usando admin SDK - bypasses RLS
+    const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
+    
+    if (!roleDoc.exists) {
+      throw new functions.https.HttpsError('permission-denied', 'No se encontró rol para este usuario');
+    }
+    
+    const role = roleDoc.data()?.role;
+    
+    if (role !== 'admin') {
+      throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
+    }
+    
+    return context.auth.uid;
+  } catch (error: any) {
+    console.error('Error en requireAdmin:', error);
+    throw error;
   }
-  
-  return context.auth.uid;
 }
 
 // Create user with role

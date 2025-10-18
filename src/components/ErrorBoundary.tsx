@@ -36,6 +36,20 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught:', error, errorInfo);
+    
+    // Detectar errores específicos de Firestore
+    if (error.message.includes('Missing or insufficient permissions')) {
+      logger.error('🔒 Firestore Permissions Error - posible recursión en rules');
+    }
+    
+    if (error.message.includes('deadline-exceeded') || error.message.includes('timeout')) {
+      logger.error('⏱️ Firestore Timeout - posible loop infinito en rules');
+    }
+    
+    if (error.message.includes('infinite recursion')) {
+      logger.error('🔄 Infinite Recursion detectada en Firestore Rules');
+    }
+    
     // TODO: Enviar a servicio de monitoring (Sentry, LogRocket, etc.)
   }
 

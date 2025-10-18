@@ -6,18 +6,18 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function getUserRole() {
-      // Ahora usamos el userId como document ID directamente
-      let roleDoc = get(/databases/$(database)/documents/user_roles/$(request.auth.uid));
-      return roleDoc.data.role;
+    // Función helper para verificar roles SIN recursión
+    function hasRole(role) {
+      return exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
+             && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == role;
     }
     
     function isAdmin() {
-      return isAuthenticated() && getUserRole() == 'admin';
+      return isAuthenticated() && hasRole('admin');
     }
     
     function isCoach() {
-      return isAuthenticated() && getUserRole() == 'coach';
+      return isAuthenticated() && hasRole('coach');
     }
     
     function isOwner(userId) {
@@ -39,7 +39,10 @@ service cloud.firestore {
     
     match /user_roles/{roleId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      // Verificar admin sin recursión - acceso directo al documento
+      allow write: if isAuthenticated() 
+                      && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
+                      && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'admin';
     }
     
     match /muscles/{muscleId} {
