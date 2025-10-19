@@ -10,6 +10,7 @@ export interface UserProfile {
   goals: string;
   units: 'kg' | 'lb';
   coach_id: string | null;
+  role?: UserRole;
   created_at: Date;
   updated_at: Date;
 }

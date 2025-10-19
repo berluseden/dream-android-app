@@ -5,7 +5,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { UserProfile, UserRole } from '@/types/user.types';
 import { useToast } from '@/hooks/use-toast';
@@ -32,57 +32,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProfile = async (uid: string) => {
-    const profileDoc = await getDoc(doc(db, 'users', uid));
-    if (profileDoc.exists()) {
-      return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
-    }
-    return null;
-  };
-
-  const fetchRole = async (uid: string): Promise<UserRole | null> => {
+  const fetchProfile = async (uid: string): Promise<UserProfile | null> => {
     try {
-      const roleDoc = await getDoc(doc(db, 'user_roles', uid));
-      if (roleDoc.exists()) {
-        const roleData = roleDoc.data();
-        const role = roleData?.role as UserRole;
-        console.log(`✅ Rol obtenido para ${uid}: ${role}`);
-        return role;
+      const profileDoc = await getDoc(doc(db, 'users', uid));
+      if (profileDoc.exists()) {
+        const data = profileDoc.data();
+        const userRole = (data?.role as UserRole) || 'user';
+        console.log(`✅ Perfil y rol obtenidos para ${uid}: role=${userRole}`);
+        return {
+          id: profileDoc.id,
+          ...data,
+          role: userRole,
+        } as UserProfile;
       }
-      // No crear desde el cliente por reglas: devolver 'user' por defecto
-      console.warn(`No se encontró rol para ${uid}, usando rol 'user' por defecto (sin escritura cliente)`);
-      return 'user';
+      console.warn(`⚠️  Perfil no encontrado para ${uid}`);
+      return null;
     } catch (error) {
-      console.error('Error al obtener rol:', error);
-      return 'user'; // Fallback seguro
+      console.error('❌ Error al obtener perfil:', error);
+      return null;
     }
   };
 
   useEffect(() => {
-    let unsubscribeRole: (() => void) | null = null;
-    
+    let unsubscribeProfile: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
-      
+
       if (firebaseUser) {
         try {
-          const [userProfile, userRole] = await Promise.all([
-            fetchProfile(firebaseUser.uid),
-            fetchRole(firebaseUser.uid)
-          ]);
-          
+          // Carga inicial del perfil
+          const userProfile = await fetchProfile(firebaseUser.uid);
+          const profileRole = (userProfile?.role as UserRole) || 'user';
+
           setProfile(userProfile);
-          setRole(userRole || 'user');
-          
-          // Listener real-time para cambios de rol
-          const roleRef = doc(db, 'user_roles', firebaseUser.uid);
-          unsubscribeRole = onSnapshot(
-            roleRef, 
-            (roleDoc) => {
-              if (roleDoc.exists()) {
-                const roleData = roleDoc.data();
-                const newRole = roleData?.role as UserRole;
-                console.log(`🔄 Rol actualizado en tiempo real: ${newRole}`);
+          setRole(profileRole);
+
+          // Listener real-time para cambios en el perfil (incluyendo rol)
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          unsubscribeProfile = onSnapshot(
+            userRef,
+            (userDoc) => {
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const newRole = (userData?.role as UserRole) || 'user';
+                const updatedProfile = {
+                  id: userDoc.id,
+                  ...userData,
+                  role: newRole,
+                } as UserProfile;
+
+                console.log(`🔄 Perfil actualizado en tiempo real - rol: ${newRole}`);
+                setProfile(updatedProfile);
                 setRole((prevRole) => {
                   if (newRole !== prevRole) {
                     console.log(`📢 Cambio de rol detectado: ${prevRole} → ${newRole}`);
@@ -93,21 +94,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   }
                   return newRole;
                 });
-              } else {
-                console.warn('Documento de rol no existe en el listener');
               }
             },
             (error) => {
-              console.error('Error en listener de rol:', error);
+              console.error('❌ Error en listener de perfil:', error);
               toast({
-                title: "Error al sincronizar rol",
+                title: "Error al sincronizar perfil",
                 description: "Por favor recarga la página",
                 variant: "destructive",
               });
             }
           );
         } catch (error) {
-          console.error('Error al cargar perfil/rol:', error);
+          console.error('Error al cargar perfil:', error);
         } finally {
           setLoading(false);
         }
@@ -120,18 +119,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       unsubscribe();
-      if (unsubscribeRole) {
-        unsubscribeRole();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
       }
     };
-  }, []);
+  }, [toast]);
 
   const signIn = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
-        title: "¡Sesión iniciada!",
-        description: "Bienvenido de nuevo",
+        title: "¡Bienvenido!",
+        description: "Iniciando sesión...",
       });
     } catch (error: any) {
       toast({
@@ -162,13 +161,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (user) {
       console.log(`🔄 Refrescando perfil para ${user.uid}`);
-      const [updatedProfile, updatedRole] = await Promise.all([
-        fetchProfile(user.uid),
-        fetchRole(user.uid)
-      ]);
-      console.log(`✅ Perfil refrescado - rol: ${updatedRole}`);
-      setProfile(updatedProfile);
-      setRole(updatedRole);
+      const updatedProfile = await fetchProfile(user.uid);
+      if (updatedProfile) {
+        const updatedRole = updatedProfile.role || 'user';
+        console.log(`✅ Perfil refrescado - rol: ${updatedRole}`);
+        setProfile(updatedProfile);
+        setRole(updatedRole);
+      }
     }
   };
 
