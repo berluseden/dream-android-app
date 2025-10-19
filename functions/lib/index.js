@@ -44,8 +44,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateUserE1RM = exports.notifyPendingWorkouts = exports.adjustWeeklyVolume = exports.reindexComputedFields = exports.backupCollections = exports.seedCatalogs = exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
-const functions = __importStar(require("firebase-functions"));
+exports.calculateUserE1RM = exports.notifyPendingWorkouts = exports.adjustWeeklyVolume = exports.aiSummarizeCheckIn = exports.aiGenerateProgram = exports.aiSuggestWorkoutTweaks = exports.reindexComputedFields = exports.backupCollections = exports.seedCatalogs = exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
+const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // Import admin functions
@@ -65,6 +65,11 @@ Object.defineProperty(exports, "seedCatalogs", { enumerable: true, get: function
 var backup_1 = require("./backup");
 Object.defineProperty(exports, "backupCollections", { enumerable: true, get: function () { return backup_1.backupCollections; } });
 Object.defineProperty(exports, "reindexComputedFields", { enumerable: true, get: function () { return backup_1.reindexComputedFields; } });
+// Import AI callable functions
+var ai_1 = require("./ai");
+Object.defineProperty(exports, "aiSuggestWorkoutTweaks", { enumerable: true, get: function () { return ai_1.aiSuggestWorkoutTweaks; } });
+Object.defineProperty(exports, "aiGenerateProgram", { enumerable: true, get: function () { return ai_1.aiGenerateProgram; } });
+Object.defineProperty(exports, "aiSummarizeCheckIn", { enumerable: true, get: function () { return ai_1.aiSummarizeCheckIn; } });
 /**
  * Función: Ajuste Automático de Volumen Semanal
  *
@@ -97,7 +102,7 @@ exports.adjustWeeklyVolume = functions.pubsub
             .where('completed_at', '>=', weekStart)
             .where('status', '==', 'completed')
             .get();
-        const workoutIds = workouts.docs.map(d => d.id);
+        const workoutIds = workouts.docs.map((d) => d.id);
         if (workoutIds.length === 0)
             continue;
         // Analizar fatiga y volumen por músculo
@@ -226,7 +231,7 @@ exports.calculateUserE1RM = functions.https.onCall(async (data, context) => {
     if (sets.empty) {
         return { e1rm: 0, count: 0 };
     }
-    const e1rms = sets.docs.map(doc => {
+    const e1rms = sets.docs.map((doc) => {
         const set = doc.data();
         // Fórmula de Epley con RIR
         const repsToFailure = set.completed_reps + (set.rir_actual || 0);

@@ -10,7 +10,7 @@
  * 4. firebase deploy --only functions
  */
 
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 
 admin.initializeApp();
@@ -33,6 +33,9 @@ export { seedCatalogs } from './seed';
 // Import backup functions
 export { backupCollections, reindexComputedFields } from './backup';
 
+// Import AI callable functions
+export { aiSuggestWorkoutTweaks, aiGenerateProgram, aiSummarizeCheckIn } from './ai';
+
 /**
  * Función: Ajuste Automático de Volumen Semanal
  * 
@@ -45,7 +48,7 @@ export { backupCollections, reindexComputedFields } from './backup';
 export const adjustWeeklyVolume = functions.pubsub
   .schedule('0 23 * * 0') // Cada domingo a las 23:00
   .timeZone('America/Mexico_City')
-  .onRun(async (context) => {
+  .onRun(async (context: any) => {
     const db = admin.firestore();
     
     // Obtener todos los mesociclos activos
@@ -70,7 +73,7 @@ export const adjustWeeklyVolume = functions.pubsub
         .where('status', '==', 'completed')
         .get();
 
-      const workoutIds = workouts.docs.map(d => d.id);
+  const workoutIds = workouts.docs.map((d: FirebaseFirestore.QueryDocumentSnapshot) => d.id);
       
       if (workoutIds.length === 0) continue;
 
@@ -183,7 +186,7 @@ export const adjustWeeklyVolume = functions.pubsub
 export const notifyPendingWorkouts = functions.pubsub
   .schedule('0 8 * * *')
   .timeZone('America/Mexico_City')
-  .onRun(async (context) => {
+  .onRun(async (context: functions.EventContext) => {
     const db = admin.firestore();
     
     const today = new Date();
@@ -214,7 +217,10 @@ export const notifyPendingWorkouts = functions.pubsub
  *   -H "Content-Type: application/json" \
  *   -d '{"userId": "abc123", "exerciseId": "bench-press"}'
  */
-export const calculateUserE1RM = functions.https.onCall(async (data, context) => {
+export const calculateUserE1RM = functions.https.onCall(async (
+  data: { exerciseId: string },
+  context: functions.https.CallableContext
+) => {
   const { exerciseId } = data;
 
   if (!context.auth) {
@@ -234,7 +240,7 @@ export const calculateUserE1RM = functions.https.onCall(async (data, context) =>
     return { e1rm: 0, count: 0 };
   }
 
-  const e1rms = sets.docs.map(doc => {
+  const e1rms = sets.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
     const set = doc.data();
     // Fórmula de Epley con RIR
     const repsToFailure = set.completed_reps + (set.rir_actual || 0);

@@ -71,16 +71,6 @@
       ]
     },
     {
-      "collectionGroup": "templates",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "name",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "exercises",
       "queryScope": "COLLECTION",
       "fields": [

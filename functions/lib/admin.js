@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
-const functions = __importStar(require("firebase-functions"));
+const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const audit_1 = require("./audit");
 // import { UserRole } from './types'; // Unused import
@@ -46,12 +46,22 @@ async function requireAdmin(context) {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Usuario no autenticado');
     }
-    const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
-    const role = (_a = roleDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
-    if (role !== 'admin') {
-        throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
+    try {
+        // Lectura directa usando admin SDK - bypasses RLS
+        const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
+        if (!roleDoc.exists) {
+            throw new functions.https.HttpsError('permission-denied', 'No se encontró rol para este usuario');
+        }
+        const role = (_a = roleDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
+        if (role !== 'admin') {
+            throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
+        }
+        return context.auth.uid;
     }
-    return context.auth.uid;
+    catch (error) {
+        console.error('Error en requireAdmin:', error);
+        throw error;
+    }
 }
 // Create user with role
 exports.createUserWithRole = functions.https.onCall(async (data, context) => {

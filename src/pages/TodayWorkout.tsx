@@ -13,6 +13,8 @@ import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
 import { Loader2, Dumbbell, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { useAISuggestWorkoutTweaks } from '@/hooks/useAI';
 
 export default function TodayWorkout() {
   const navigate = useNavigate();
@@ -22,6 +24,9 @@ export default function TodayWorkout() {
   const completeWorkout = useCompleteWorkout();
   const addSet = useAddSet();
   const addFeedback = useAddExerciseFeedback();
+  const aiSuggest = useAISuggestWorkoutTweaks();
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiText, setAiText] = useState('');
   
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [activeExerciseId, setActiveExerciseId] = useState<string>('');
@@ -213,6 +218,40 @@ export default function TodayWorkout() {
             />
           </FadeIn>
 
+          {/* Botón de Sugerencias AI */}
+          {startTime && (
+            <FadeIn delay={0.15}>
+              <div className="flex justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    setAiOpen(true);
+                    try {
+                      const payload = {
+                        workout: {
+                          id: workout.id,
+                          status: workout.status,
+                          planned_date: workout.planned_date,
+                          exercises: exercises?.map(e => ({ id: e.id, name: e.name, muscle: e.prime_muscle })) || []
+                        },
+                        recentStats: {
+                          volumeSets: totalSets,
+                        },
+                      };
+                      const res = await aiSuggest.mutateAsync(payload as any);
+                      setAiText(res.suggestions || '');
+                    } catch (e) {
+                      setAiText('No se pudieron obtener sugerencias ahora.');
+                    }
+                  }}
+                  disabled={aiSuggest.isPending}
+                >
+                  {aiSuggest.isPending ? 'Analizando…' : 'Sugerencias AI'}
+                </Button>
+              </div>
+            </FadeIn>
+          )}
+
           {startTime && (
             <>
               <FadeIn delay={0.2}>
@@ -273,6 +312,21 @@ export default function TodayWorkout() {
             onSubmit={handleFeedbackSubmit}
           />
         </div>
+
+        {/* Drawer/Modal ligero para mostrar la salida AI */}
+        {aiOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={() => setAiOpen(false)}>
+            <div className="bg-background w-full sm:w-[600px] max-h-[70vh] rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 border-b flex items-center justify-between">
+                <h3 className="font-semibold">Sugerencias del Coach AI</h3>
+                <Button size="sm" variant="ghost" onClick={() => setAiOpen(false)}>Cerrar</Button>
+              </div>
+              <div className="p-4 overflow-auto whitespace-pre-wrap text-sm">
+                {aiText || 'Sin contenido'}
+              </div>
+            </div>
+          </div>
+        )}
       </PageTransition>
     </AppLayout>
   );
