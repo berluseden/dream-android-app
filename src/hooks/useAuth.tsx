@@ -43,18 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchRole = async (uid: string): Promise<UserRole | null> => {
     try {
       const roleDoc = await getDoc(doc(db, 'user_roles', uid));
-      
       if (roleDoc.exists()) {
         return roleDoc.data().role as UserRole;
       }
-      
-      // Si no existe rol, crear uno por defecto
-      console.warn(`No se encontró rol para ${uid}, creando rol 'user' por defecto`);
-      await setDoc(doc(db, 'user_roles', uid), {
-        role: 'user',
-        created_at: serverTimestamp(),
-      });
-      
+      // No crear desde el cliente por reglas: devolver 'user' por defecto
+      console.warn(`No se encontró rol para ${uid}, usando rol 'user' por defecto (sin escritura cliente)`);
       return 'user';
     } catch (error) {
       console.error('Error al obtener rol:', error);
