@@ -25,6 +25,7 @@ export {
   resetUserPassword,
   revokeInvitation,
   assignCoach,
+  updateUserRole,
 } from './admin';
 
 // Import seed functions

@@ -44,7 +44,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateUserE1RM = exports.notifyPendingWorkouts = exports.adjustWeeklyVolume = exports.aiSummarizeCheckIn = exports.aiGenerateProgram = exports.aiSuggestWorkoutTweaks = exports.reindexComputedFields = exports.backupCollections = exports.seedCatalogs = exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
+exports.calculateUserE1RM = exports.notifyPendingWorkouts = exports.adjustWeeklyVolume = exports.aiSummarizeCheckIn = exports.aiGenerateProgram = exports.aiSuggestWorkoutTweaks = exports.reindexComputedFields = exports.backupCollections = exports.seedCatalogs = exports.updateUserRole = exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
@@ -58,6 +58,7 @@ Object.defineProperty(exports, "deleteUser", { enumerable: true, get: function (
 Object.defineProperty(exports, "resetUserPassword", { enumerable: true, get: function () { return admin_1.resetUserPassword; } });
 Object.defineProperty(exports, "revokeInvitation", { enumerable: true, get: function () { return admin_1.revokeInvitation; } });
 Object.defineProperty(exports, "assignCoach", { enumerable: true, get: function () { return admin_1.assignCoach; } });
+Object.defineProperty(exports, "updateUserRole", { enumerable: true, get: function () { return admin_1.updateUserRole; } });
 // Import seed functions
 var seed_1 = require("./seed");
 Object.defineProperty(exports, "seedCatalogs", { enumerable: true, get: function () { return seed_1.seedCatalogs; } });

@@ -189,6 +189,15 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
       role: newRole,
     }, { merge: true });
     
+    // También actualizar el campo role en users (nueva arquitectura)
+    await db.collection('users').doc(userId).update({
+      role: newRole,
+    }).catch((err) => {
+      console.warn('Warning: Could not update users/{userId}.role:', err.message);
+      // No fallar si falta el documento users, pero loguear
+    });
+    
+    
     // If promoting to coach, create coach profile
     if (newRole === 'coach' && oldRole !== 'coach') {
       console.log('Creating coach profile for:', userId);
@@ -398,6 +407,46 @@ export const assignCoach = functions.https.onCall(async (data, context) => {
     return { success: true };
   } catch (error: any) {
     console.error('Error assigning coach:', error);
+    throw new functions.https.HttpsError('internal', error.message);
+  }
+});
+
+// Update user role (admin only)
+export const updateUserRole = functions.https.onCall(async (data, context) => {
+  const adminId = await requireAdmin(context);
+  
+  const { userId, role } = data;
+  
+  if (!userId || !role) {
+    throw new functions.https.HttpsError('invalid-argument', 'userId y role son requeridos');
+  }
+  
+  if (!['admin', 'coach', 'user'].includes(role)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Rol inválido. Debe ser: admin, coach, user');
+  }
+  
+  try {
+    // Actualizar rol en users/{userId}
+    await db.collection('users').doc(userId).update({
+      role: role,
+    });
+    
+    // Crear log de auditoría
+    await createAuditLog(adminId, 'UPDATE_ROLE', `users/${userId}`, {
+      targetId: userId,
+      after: { role: role },
+    });
+    
+    console.log(`✅ Rol del usuario ${userId} actualizado a: ${role}`);
+    
+    return { 
+      success: true, 
+      message: `Rol actualizado exitosamente a ${role}`,
+      userId,
+      role,
+    };
+  } catch (error: any) {
+    console.error('Error updating user role:', error);
     throw new functions.https.HttpsError('internal', error.message);
   }
 });

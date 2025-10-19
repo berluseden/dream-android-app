@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
+exports.updateUserRole = exports.assignCoach = exports.revokeInvitation = exports.resetUserPassword = exports.deleteUser = exports.disableUser = exports.setUserRole = exports.sendInvitation = exports.createUserWithRole = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const audit_1 = require("./audit");
@@ -192,6 +192,13 @@ exports.setUserRole = functions.https.onCall(async (data, context) => {
             user_id: userId,
             role: newRole,
         }, { merge: true });
+        // También actualizar el campo role en users (nueva arquitectura)
+        await db.collection('users').doc(userId).update({
+            role: newRole,
+        }).catch((err) => {
+            console.warn('Warning: Could not update users/{userId}.role:', err.message);
+            // No fallar si falta el documento users, pero loguear
+        });
         // If promoting to coach, create coach profile
         if (newRole === 'coach' && oldRole !== 'coach') {
             console.log('Creating coach profile for:', userId);
@@ -362,6 +369,39 @@ exports.assignCoach = functions.https.onCall(async (data, context) => {
     }
     catch (error) {
         console.error('Error assigning coach:', error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+// Update user role (admin only)
+exports.updateUserRole = functions.https.onCall(async (data, context) => {
+    const adminId = await requireAdmin(context);
+    const { userId, role } = data;
+    if (!userId || !role) {
+        throw new functions.https.HttpsError('invalid-argument', 'userId y role son requeridos');
+    }
+    if (!['admin', 'coach', 'user'].includes(role)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Rol inválido. Debe ser: admin, coach, user');
+    }
+    try {
+        // Actualizar rol en users/{userId}
+        await db.collection('users').doc(userId).update({
+            role: role,
+        });
+        // Crear log de auditoría
+        await (0, audit_1.createAuditLog)(adminId, 'UPDATE_ROLE', `users/${userId}`, {
+            targetId: userId,
+            after: { role: role },
+        });
+        console.log(`✅ Rol del usuario ${userId} actualizado a: ${role}`);
+        return {
+            success: true,
+            message: `Rol actualizado exitosamente a ${role}`,
+            userId,
+            role,
+        };
+    }
+    catch (error) {
+        console.error('Error updating user role:', error);
         throw new functions.https.HttpsError('internal', error.message);
     }
 });
