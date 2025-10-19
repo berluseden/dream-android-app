@@ -26,6 +26,7 @@ import Settings from "./pages/Settings";
 import Calibration from "./pages/onboarding/Calibration";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
+import BrowsePrograms from "./pages/programs/Browse";
 
 // Lazy load admin pages para reducir bundle inicial
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -104,6 +105,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Workouts />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/programs/browse"
+              element={
+                <ProtectedRoute>
+                  <BrowsePrograms />
                 </ProtectedRoute>
               }
             />
