@@ -44,7 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const roleDoc = await getDoc(doc(db, 'user_roles', uid));
       if (roleDoc.exists()) {
-        return roleDoc.data().role as UserRole;
+        const roleData = roleDoc.data();
+        const role = roleData?.role as UserRole;
+        console.log(`✅ Rol obtenido para ${uid}: ${role}`);
+        return role;
       }
       // No crear desde el cliente por reglas: devolver 'user' por defecto
       console.warn(`No se encontró rol para ${uid}, usando rol 'user' por defecto (sin escritura cliente)`);
@@ -77,9 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             roleRef, 
             (roleDoc) => {
               if (roleDoc.exists()) {
-                const newRole = roleDoc.data().role as UserRole;
+                const roleData = roleDoc.data();
+                const newRole = roleData?.role as UserRole;
+                console.log(`🔄 Rol actualizado en tiempo real: ${newRole}`);
                 setRole((prevRole) => {
                   if (newRole !== prevRole) {
+                    console.log(`📢 Cambio de rol detectado: ${prevRole} → ${newRole}`);
                     toast({
                       title: "Tu rol ha sido actualizado",
                       description: `Ahora eres: ${newRole}`,
@@ -87,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   }
                   return newRole;
                 });
+              } else {
+                console.warn('Documento de rol no existe en el listener');
               }
             },
             (error) => {
@@ -153,10 +161,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
+      console.log(`🔄 Refrescando perfil para ${user.uid}`);
       const [updatedProfile, updatedRole] = await Promise.all([
         fetchProfile(user.uid),
         fetchRole(user.uid)
       ]);
+      console.log(`✅ Perfil refrescado - rol: ${updatedRole}`);
       setProfile(updatedProfile);
       setRole(updatedRole);
     }
