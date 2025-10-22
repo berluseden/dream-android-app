@@ -38,13 +38,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     
-    // Mantener user_roles para compatibilidad hacia atrás (deprecated)
-    match /user_roles/{roleId} {
-      allow read: if isAuthenticated();
-      // Solo admin puede escribir (para migración)
-      allow write: if isAdmin();
-    }
-    
     match /muscles/{muscleId} {
       allow read: if true;
       allow write: if isAdmin();

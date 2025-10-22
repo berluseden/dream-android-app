@@ -212,7 +212,7 @@ export default function ModernDashboard() {
                   title="Mesociclo Actual"
                   icon={<Target className="h-5 w-5" />}
                   gradient="from-purple-500 to-indigo-600"
-                  onClick={() => navigate(`/mesocycles/${activeMesocycle?.id}`)}
+                  onClick={activeMesocycle ? () => navigate(`/mesocycles/${activeMesocycle.id}`) : undefined}
                 >
                   {activeMesocycle ? (
                     <div>
@@ -232,7 +232,10 @@ export default function ModernDashboard() {
                     <div className="text-center py-4">
                       <p className="text-muted-foreground mb-4">Sin mesociclo activo</p>
                       <Button
-                        onClick={() => navigate('/mesocycles/create')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate('/mesocycles/create');
+                        }}
                         className="gap-2"
                       >
                         <Plus className="h-4 w-4" />

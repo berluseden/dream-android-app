@@ -40,11 +40,10 @@ async function createAuditLog(actorId, action, targetPath, options = {}) {
     try {
         const db = admin.firestore();
         // Get actor info
-        const userRoleDoc = await db.collection('user_roles').doc(actorId).get();
         const userDoc = await db.collection('users').doc(actorId).get();
         const auditLog = {
             actor_id: actorId,
-            actor_role: ((_a = userRoleDoc.data()) === null || _a === void 0 ? void 0 : _a.role) || 'unknown',
+            actor_role: ((_a = userDoc.data()) === null || _a === void 0 ? void 0 : _a.role) || 'unknown',
             actor_email: ((_b = userDoc.data()) === null || _b === void 0 ? void 0 : _b.email) || '',
             action,
             target_path: targetPath,

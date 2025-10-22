@@ -16,12 +16,11 @@ export async function createAuditLog(
     const db = admin.firestore();
     
     // Get actor info
-    const userRoleDoc = await db.collection('user_roles').doc(actorId).get();
     const userDoc = await db.collection('users').doc(actorId).get();
     
     const auditLog = {
       actor_id: actorId,
-      actor_role: userRoleDoc.data()?.role || 'unknown',
+      actor_role: userDoc.data()?.role || 'unknown',
       actor_email: userDoc.data()?.email || '',
       action,
       target_path: targetPath,

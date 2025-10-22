@@ -11,8 +11,8 @@ async function requireAdmin(context: functions.https.CallableContext) {
     throw new functions.https.HttpsError('unauthenticated', 'Usuario no autenticado');
   }
   
-  const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
-  const role = roleDoc.data()?.role;
+  const userDoc = await db.collection('users').doc(context.auth.uid).get();
+  const role = userDoc.data()?.role;
   
   if (role !== 'admin') {
     throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
@@ -53,9 +53,9 @@ export const backupCollections = functions.https.onCall(async (data, context) =>
     if (scope === 'catalogs') {
       collections = ['muscles', 'exercises', 'templates'];
     } else if (scope === 'users') {
-      collections = ['users', 'user_roles', 'coach_profiles'];
+      collections = ['users', 'coach_profiles'];
     } else if (scope === 'all') {
-      collections = ['muscles', 'exercises', 'templates', 'users', 'user_roles', 'coach_profiles', 'mesocycles', 'workouts'];
+      collections = ['muscles', 'exercises', 'templates', 'users', 'coach_profiles', 'mesocycles', 'workouts'];
     }
     
     // Backup each collection
@@ -104,7 +104,7 @@ export const reindexComputedFields = functions.https.onCall(async (data, context
     console.log('Starting reindex process...');
     
     // Recount coach clients
-    const coaches = await db.collection('user_roles').where('role', '==', 'coach').get();
+    const coaches = await db.collection('users').where('role', '==', 'coach').get();
     
     for (const coachDoc of coaches.docs) {
       const coachId = coachDoc.id;

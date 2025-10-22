@@ -13,14 +13,14 @@ async function requireAdmin(context: functions.https.CallableContext) {
   }
   
   try {
-    // Lectura directa usando admin SDK - bypasses RLS
-    const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
+    // Leer rol desde users collection
+    const userDoc = await db.collection('users').doc(context.auth.uid).get();
     
-    if (!roleDoc.exists) {
-      throw new functions.https.HttpsError('permission-denied', 'No se encontró rol para este usuario');
+    if (!userDoc.exists) {
+      throw new functions.https.HttpsError('permission-denied', 'No se encontró usuario');
     }
     
-    const role = roleDoc.data()?.role;
+    const role = userDoc.data()?.role;
     
     if (role !== 'admin') {
       throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
@@ -68,15 +68,9 @@ export const createUserWithRole = functions.https.onCall(async (data, context) =
       goals: '',
       units: 'kg',
       coach_id: null,
+      role: role, // Incluir rol directamente en users
       created_at: admin.firestore.FieldValue.serverTimestamp(),
       updated_at: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    
-    // Assign role
-    await db.collection('user_roles').doc(userId).set({
-      id: userId,
-      user_id: userId,
-      role,
     });
     
     // If coach, create coach profile
@@ -171,30 +165,22 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
   }
   
   try {
-    const roleRef = db.collection('user_roles').doc(userId);
-    const roleDoc = await roleRef.get();
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
     
-    if (!roleDoc.exists) {
-      console.error('User role not found:', { userId, adminId });
-      throw new functions.https.HttpsError('not-found', 'El usuario no existe o no tiene un rol asignado');
+    if (!userDoc.exists) {
+      console.error('User not found:', { userId, adminId });
+      throw new functions.https.HttpsError('not-found', 'El usuario no existe');
     }
     
-    const oldRole = roleDoc.data()?.role;
+    const oldRole = userDoc.data()?.role || 'user';
     
     console.log('Setting user role:', { userId, oldRole, newRole, adminId });
     
-    await roleRef.set({
-      id: userId,
-      user_id: userId,
+    // Actualizar rol en users
+    await userRef.update({
       role: newRole,
-    }, { merge: true });
-    
-    // También actualizar el campo role en users (nueva arquitectura)
-    await db.collection('users').doc(userId).update({
-      role: newRole,
-    }).catch((err) => {
-      console.warn('Warning: Could not update users/{userId}.role:', err.message);
-      // No fallar si falta el documento users, pero loguear
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
     });
     
     
@@ -211,7 +197,7 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
     }
     
     // Audit log
-    await createAuditLog(adminId, 'UPDATE_ROLE', `user_roles/${userId}`, {
+    await createAuditLog(adminId, 'UPDATE_ROLE', `users/${userId}`, {
       targetId: userId,
       before: { role: oldRole },
       after: { role: newRole },
@@ -292,9 +278,8 @@ export const deleteUser = functions.https.onCall(async (data, context) => {
     const userDoc = await db.collection('users').doc(userId).get();
     const userData = userDoc.data();
     
-    // Delete from Firestore (cascade will handle auth.users via rules)
+    // Delete from Firestore
     await db.collection('users').doc(userId).delete();
-    await db.collection('user_roles').doc(userId).delete();
     
     // Delete coach profile if exists
     const coachProfile = await db.collection('coach_profiles').doc(userId).get();

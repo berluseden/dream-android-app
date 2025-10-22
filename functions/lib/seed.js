@@ -44,8 +44,8 @@ async function requireAdmin(context) {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Usuario no autenticado');
     }
-    const roleDoc = await db.collection('user_roles').doc(context.auth.uid).get();
-    const role = (_a = roleDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
+    const userDoc = await db.collection('users').doc(context.auth.uid).get();
+    const role = (_a = userDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
     if (role !== 'admin') {
         throw new functions.https.HttpsError('permission-denied', 'Solo administradores pueden realizar esta acción');
     }
@@ -410,20 +410,17 @@ async function createDefaultAdmin() {
                 email: defaultAdminEmail,
                 name: 'Administrador',
                 created_at: admin.firestore.FieldValue.serverTimestamp(),
+                role: 'admin', // Agregar rol directamente
                 updated_at: admin.firestore.FieldValue.serverTimestamp(),
             });
-            console.log('Created admin user profile');
+            console.log('Created admin user profile with role');
         }
-        // Set admin role
-        const roleRef = db.collection('user_roles').doc(userRecord.uid);
-        const roleDoc = await roleRef.get();
-        if (!roleDoc.exists) {
-            await roleRef.set({
-                user_id: userRecord.uid,
+        else {
+            // Asegurar que tenga el rol admin
+            await userRef.update({
                 role: 'admin',
-                created_at: admin.firestore.FieldValue.serverTimestamp(),
             });
-            console.log('Set admin role');
+            console.log('Updated existing user to admin role');
         }
         console.log(`Default admin created: ${defaultAdminEmail}`);
         console.log('IMPORTANTE: Cambiar contraseña temporal "Admin123!"');
