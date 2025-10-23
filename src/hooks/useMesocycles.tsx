@@ -14,6 +14,7 @@ import {
   limit,
   Timestamp,
   addDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -175,7 +176,7 @@ export function useCreateMesocycle() {
       length_weeks: number;
       specialization: string[];
       effort_scale: 'RIR' | 'RPE';
-      template_id?: string;
+      template_id: string; // ✅ CORREGIDO: Ya no es opcional
       targets: Array<{
         muscle_id: string;
         sets_min: number;
@@ -183,6 +184,11 @@ export function useCreateMesocycle() {
         sets_target: number;
       }>;
     }) => {
+      // ✅ VALIDACIÓN: Template es obligatorio
+      if (!data.template_id || data.template_id.trim() === '') {
+        throw new Error('Debes seleccionar un programa de entrenamiento');
+      }
+      
       // ✅ VALIDACIÓN: Verificar que no haya otro mesociclo activo
       const activeQuery = query(
         collection(db, 'mesocycles'),
@@ -203,7 +209,7 @@ export function useCreateMesocycle() {
       batch.set(mesoRef, {
         user_id: data.user_id,
         coach_id: null,
-        template_id: data.template_id || '',
+        template_id: data.template_id, // ✅ Ya no usa || '' porque es obligatorio
         name: data.name,
         start_date: data.start_date,
         length_weeks: data.length_weeks,
@@ -243,15 +249,14 @@ export function useCreateMesocycle() {
       
       console.log('✅ Mesociclo guardado en Firestore:', mesoRef.id);
       
-      // ✨ Generate workouts AFTER batch commit
-      if (data.template_id) {
-        // Show loading toast
-        toast({
-          title: "Generando entrenamientos...",
-          description: "Esto puede tomar unos segundos",
-        });
-        
-        try {
+      // ✨ Generate workouts AFTER batch commit (ahora siempre hay template)
+      // Show loading toast
+      toast({
+        title: "Generando entrenamientos...",
+        description: "Esto puede tomar unos segundos",
+      });
+      
+      try {
           // ✅ CORREGIDO: Si el template es local, guardarlo en Firestore primero
           let actualTemplateId = data.template_id;
           
@@ -301,14 +306,13 @@ export function useCreateMesocycle() {
             title: "✅ Entrenamientos creados",
             description: `Se generaron ${workoutsGenerated} entrenamientos exitosamente`,
           });
-        } catch (error: any) {
-          console.error('❌ Error generating workouts:', error);
-          toast({
-            title: "Advertencia",
-            description: error.message || "El mesociclo se creó pero hubo un error generando los entrenamientos",
-            variant: "destructive",
-          });
-        }
+      } catch (error: any) {
+        console.error('❌ Error generating workouts:', error);
+        
+        // ✅ Si falla la generación de workouts, eliminar el mesociclo
+        await deleteDoc(doc(db, 'mesocycles', mesoRef.id));
+        
+        throw new Error(error.message || "Error al generar los entrenamientos. Por favor, intenta de nuevo.");
       }
       
       return { id: mesoRef.id };

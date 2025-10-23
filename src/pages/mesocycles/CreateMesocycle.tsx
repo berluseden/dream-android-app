@@ -160,7 +160,7 @@ export default function CreateMesocycle() {
         specialization: selectedMuscles,
         effort_scale: effortScale,
         targets,
-        template_id: selectedTemplate?.id || undefined,
+        template_id: selectedTemplate!.id, // ✅ Ahora siempre existe porque es validado
       });
 
       // ✅ Esperar a que se completen todas las operaciones async y queries se invaliden
@@ -175,7 +175,8 @@ export default function CreateMesocycle() {
   };
 
   const canContinueStep1 = name && startDate && lengthWeeks >= 4 && lengthWeeks <= 8;
-  const canContinueStep2 = true; // Siempre puede continuar (con o sin programa)
+  // ✅ CORREGIDO: Ahora es obligatorio seleccionar un programa
+  const canContinueStep2 = !!selectedTemplate;
   const canContinueStep3 = selectedMuscles.length > 0;
   const canSubmit = selectedMuscles.every(id => volumeTargets[id]);
 
@@ -443,11 +444,20 @@ export default function CreateMesocycle() {
                           }));
                           navigate('/programs/browse');
                         }}
-                      >
+                       >
                         <Sparkles className="mr-2 h-4 w-4" />
                         Explorar Programas
                       </Button>
                     </div>
+                    {!selectedTemplate && (
+                      <Alert variant="destructive" className="mt-4">
+                        <AlertTitle>⚠️ Programa Requerido</AlertTitle>
+                        <AlertDescription>
+                          Debes seleccionar un programa de entrenamiento para continuar.
+                          Los programas profesionales garantizan resultados óptimos.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                   </div>
                 )}
               </div>
@@ -459,6 +469,7 @@ export default function CreateMesocycle() {
                 </Button>
                 <Button
                   onClick={() => setStep(3)}
+                  disabled={!canContinueStep2}
                   className="flex-1"
                 >
                   Continuar
