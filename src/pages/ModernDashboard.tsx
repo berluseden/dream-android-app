@@ -10,6 +10,7 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { InteractiveCard, FloatingCard } from '@/components/ui/interactive-card';
 import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
 import { useAchievements, sampleAchievements } from '@/components/gamification/AchievementSystem';
+import { TodayWorkoutWidget } from '@/components/workout/TodayWorkoutWidget';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Dumbbell, 
@@ -163,6 +164,11 @@ export default function ModernDashboard() {
                 </motion.div>
               </div>
             </div>
+          </FadeIn>
+          
+          {/* 🆕 Today's Workout Widget - Destacado */}
+          <FadeIn delay={0.15}>
+            <TodayWorkoutWidget />
           </FadeIn>
           
           {/* Stats Grid */}

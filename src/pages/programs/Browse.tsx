@@ -7,12 +7,14 @@ import { ProgramPreviewModal } from '@/components/programs/ProgramPreviewModal';
 import { usePrograms, ProgramTemplate, ProgramFilters as Filters } from '@/hooks/usePrograms';
 import { useCloneTemplate } from '@/hooks/usePrograms';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import { useAIGenerateProgram } from '@/hooks/useAI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 export default function BrowsePrograms() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [previewProgram, setPreviewProgram] = useState<ProgramTemplate | null>(null);
@@ -31,8 +33,12 @@ export default function BrowsePrograms() {
     p.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleUseProgram = async (program: ProgramTemplate) => {
-    await cloneTemplate.mutateAsync(program.id);
+  /**
+   * ✨ NUEVO: Navegar a crear mesociclo con el programa seleccionado
+   * Esto auto-generará todos los workouts del mesociclo
+   */
+  const handleUseProgram = (program: ProgramTemplate) => {
+    navigate(`/mesocycles/create?template=${program.id}`);
     setPreviewProgram(null);
   };
 

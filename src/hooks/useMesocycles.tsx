@@ -10,15 +10,21 @@ import {
   orderBy,
   serverTimestamp,
   writeBatch,
+  getDoc,
+  limit,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from './useAuth';
-import { useToast } from './use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { addDays, addWeeks } from 'date-fns';
+import type { ProgramTemplate } from './usePrograms';
 
 export interface Mesocycle {
   id: string;
   user_id: string;
   coach_id: string | null;
+  template_id?: string;           // Vinculación con programa
   name: string;
   start_date: Date;
   length_weeks: number;
@@ -134,6 +140,7 @@ export function useCreateMesocycle() {
       length_weeks: number;
       specialization: string[];
       effort_scale: 'RIR' | 'RPE';
+      template_id?: string;         // Nuevo: ID del programa
       targets: Array<{
         muscle_id: string;
         sets_min: number;
@@ -148,12 +155,13 @@ export function useCreateMesocycle() {
       batch.set(mesoRef, {
         user_id: data.user_id,
         coach_id: null,
+        template_id: data.template_id || '',  // Vincular con programa
         name: data.name,
         start_date: data.start_date,
         length_weeks: data.length_weeks,
         specialization: data.specialization,
         effort_scale: data.effort_scale,
-        status: 'planned',
+        status: 'active',  // Cambiar a active inmediatamente
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
         created_by: user?.uid || '',
@@ -182,6 +190,17 @@ export function useCreateMesocycle() {
             actual_sets: 0,
           });
         }
+      }
+      
+      // ✨ NUEVO: Generar workouts automáticamente si hay template
+      if (data.template_id) {
+        await generateWorkoutsFromTemplate(
+          mesoRef.id,
+          data.template_id,
+          data.start_date,
+          data.length_weeks,
+          data.user_id
+        );
       }
       
       await batch.commit();
@@ -223,4 +242,143 @@ export function useUpdateMesocycleStatus() {
       });
     },
   });
+}
+
+// Helper Functions para generación automática de workouts
+
+/**
+ * Genera todos los workouts de un mesociclo basado en un template de programa
+ */
+async function generateWorkoutsFromTemplate(
+  mesocycleId: string,
+  templateId: string,
+  startDate: Date,
+  weeks: number,
+  userId: string
+) {
+  try {
+    // Obtener el template del programa
+    const templateRef = doc(db, 'templates', templateId);
+    const templateSnap = await getDoc(templateRef);
+    
+    if (!templateSnap.exists()) {
+      throw new Error('Template no encontrado');
+    }
+    
+    const template = templateSnap.data() as ProgramTemplate;
+    const sessions = template.sessions || [];
+    const trainingDays = getTrainingSchedule(template.days_per_week);
+    
+    // Generar workouts para cada semana
+    for (let week = 0; week < weeks; week++) {
+      const weekStart = addWeeks(startDate, week);
+      
+      // Para cada día de entrenamiento
+      trainingDays.forEach((dayOffset, dayIndex) => {
+        const workoutDate = addDays(weekStart, dayOffset);
+        const daySession = sessions[dayIndex % sessions.length]; // Rotar si hay menos sesiones que días
+        
+        if (!daySession) return;
+        
+        // Crear el documento workout
+        const workoutRef = doc(collection(db, 'workouts'));
+        const workoutData = {
+          id: workoutRef.id,
+          user_id: userId,
+          mesocycle_id: mesocycleId,
+          name: daySession.name || `Día ${dayIndex + 1}`,
+          description: '',
+          scheduled_date: Timestamp.fromDate(workoutDate),
+          week_number: week + 1,
+          day_number: dayIndex + 1,
+          status: 'scheduled',
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp(),
+        };
+        
+        // Guardar workout
+        setDoc(workoutRef, workoutData);
+        
+        // Crear workout_exercises para cada ejercicio del día
+        if (daySession.blocks && daySession.blocks.length > 0) {
+          daySession.blocks.forEach(async (block: any, exIndex: number) => {
+            // Buscar el exercise_id real basado en el nombre
+            const exerciseId = await findExerciseIdByName(block.exercise);
+            
+            if (!exerciseId) {
+              console.warn(`Ejercicio no encontrado: ${block.exercise}`);
+              return;
+            }
+            
+            const workoutExRef = doc(collection(db, 'workout_exercises'));
+            const workoutExData = {
+              id: workoutExRef.id,
+              workout_id: workoutRef.id,
+              exercise_id: exerciseId,
+              order_index: exIndex,
+              target_sets: block.sets,
+              target_reps: Array.isArray(block.rep_range) ? block.rep_range.join('-') : String(block.rep_range || ''),
+              target_rir: block.rir_target || 2,
+              notes: '',
+              created_at: serverTimestamp(),
+            };
+            
+            setDoc(workoutExRef, workoutExData);
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error generating workouts:', error);
+    throw error;
+  }
+}
+
+/**
+ * Mapea la frecuencia de entrenamiento a días de la semana
+ * Retorna array con índices de días (0 = Lunes, 6 = Domingo)
+ */
+function getTrainingSchedule(frequency: number): number[] {
+  const schedules: { [key: number]: number[] } = {
+    3: [0, 2, 4],        // Lun, Mie, Vie
+    4: [0, 1, 3, 4],     // Lun, Mar, Jue, Vie
+    5: [0, 1, 2, 3, 4],  // Lun-Vie
+    6: [0, 1, 2, 3, 4, 5], // Lun-Sab
+  };
+  
+  return schedules[frequency] || [0, 2, 4]; // Default 3 días
+}
+
+/**
+ * Busca el ID de un ejercicio por su nombre (con matching fuzzy)
+ */
+async function findExerciseIdByName(exerciseName: string): Promise<string | null> {
+  try {
+    const exercisesRef = collection(db, 'exercises');
+    const q = query(exercisesRef, limit(50)); // Traer los primeros 50
+    const snapshot = await getDocs(q);
+    
+    const normalizedSearchName = exerciseName.toLowerCase().trim();
+    
+    // Buscar match exacto primero
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      if (data.name && data.name.toLowerCase().trim() === normalizedSearchName) {
+        return doc.id;
+      }
+    }
+    
+    // Si no hay match exacto, buscar match parcial
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      if (data.name && data.name.toLowerCase().includes(normalizedSearchName)) {
+        return doc.id;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error finding exercise:', error);
+    return null;
+  }
 }

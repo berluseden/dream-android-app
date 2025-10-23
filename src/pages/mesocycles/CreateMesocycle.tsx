@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,23 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useMuscles } from '@/hooks/useExercises';
 import { useCreateMesocycle } from '@/hooks/useMesocycles';
 import { useAuth } from '@/hooks/useAuth';
-import { CalendarIcon, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { CalendarIcon, ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import type { ProgramTemplate } from '@/hooks/usePrograms';
 
 export default function CreateMesocycle() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('template');
+  
   const { user } = useAuth();
   const { data: muscles } = useMuscles();
   const createMesocycle = useCreateMesocycle();
@@ -30,6 +38,27 @@ export default function CreateMesocycle() {
   const [effortScale, setEffortScale] = useState<'RIR' | 'RPE'>('RIR');
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [volumeTargets, setVolumeTargets] = useState<Record<string, { min: number; max: number; target: number }>>({});
+
+  // ✨ NUEVO: Obtener template si viene de browse programs
+  const { data: selectedTemplate } = useQuery<ProgramTemplate | null>({
+    queryKey: ['template', templateId],
+    queryFn: async () => {
+      if (!templateId) return null;
+      const templateRef = doc(db, 'templates', templateId);
+      const templateSnap = await getDoc(templateRef);
+      if (!templateSnap.exists()) return null;
+      return { id: templateSnap.id, ...templateSnap.data() } as ProgramTemplate;
+    },
+    enabled: !!templateId,
+  });
+
+  // ✨ NUEVO: Pre-llenar campos con datos del template
+  useEffect(() => {
+    if (selectedTemplate && !name) {
+      setName(`Mesociclo ${selectedTemplate.name}`);
+      setLengthWeeks(selectedTemplate.weeks || 6);
+    }
+  }, [selectedTemplate, name]);
 
   const toggleMuscle = (muscleId: string) => {
     setSelectedMuscles(prev => 
@@ -68,6 +97,7 @@ export default function CreateMesocycle() {
       specialization: selectedMuscles,
       effort_scale: effortScale,
       targets,
+      template_id: templateId || undefined, // ✨ NUEVO: Pasar template_id para auto-generación
     });
 
     navigate('/');
@@ -101,6 +131,28 @@ export default function CreateMesocycle() {
             />
           ))}
         </div>
+
+        {/* ✨ NUEVO: Mostrar programa seleccionado */}
+        {selectedTemplate && (
+          <Alert className="mb-6 border-primary/50 bg-primary/5">
+            <Sparkles className="h-4 w-4" />
+            <AlertTitle>Programa Seleccionado</AlertTitle>
+            <AlertDescription>
+              <div className="mt-2 space-y-1">
+                <p className="font-medium">{selectedTemplate.name}</p>
+                <p className="text-sm">{selectedTemplate.description}</p>
+                <div className="flex gap-2 mt-2">
+                  <Badge variant="secondary">{selectedTemplate.days_per_week} días/semana</Badge>
+                  <Badge variant="secondary">{selectedTemplate.weeks} semanas</Badge>
+                  <Badge variant="secondary">{selectedTemplate.split}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  ✨ Los entrenamientos se generarán automáticamente al crear el mesociclo
+                </p>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {step === 1 && (
           <Card>
