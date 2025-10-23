@@ -303,3 +303,74 @@ export function useWorkoutsPaginated(mesocycleId?: string) {
     enabled: !!user?.uid,
   });
 }
+
+/**
+ * Hook para obtener workouts de un mesociclo con ejercicios incluidos
+ * Útil para vistas de calendario que necesitan mostrar información de ejercicios
+ */
+export function useWorkoutsWithExercises(mesocycleId: string | undefined) {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['workouts-with-exercises', mesocycleId, user?.uid],
+    queryFn: async () => {
+      if (!user?.uid || !mesocycleId) return [];
+      
+      // Obtener workouts del mesociclo
+      const workoutsQuery = query(
+        collection(db, 'workouts'),
+        where('user_id', '==', user.uid),
+        where('mesocycle_id', '==', mesocycleId),
+        orderBy('scheduled_date', 'asc')
+      );
+      
+      const workoutsSnapshot = await getDocs(workoutsQuery);
+      
+      // Para cada workout, obtener sus ejercicios
+      const workoutsWithExercises = await Promise.all(
+        workoutsSnapshot.docs.map(async (workoutDoc) => {
+          const workoutData = workoutDoc.data();
+          
+          // Obtener workout_exercises
+          const exercisesQuery = query(
+            collection(db, 'workout_exercises'),
+            where('workout_id', '==', workoutDoc.id),
+            orderBy('order_index', 'asc')
+          );
+          
+          const exercisesSnapshot = await getDocs(exercisesQuery);
+          
+          // Para cada workout_exercise, obtener los datos del ejercicio
+          const exercises = await Promise.all(
+            exercisesSnapshot.docs.map(async (exDoc) => {
+              const exData = exDoc.data();
+              const exerciseDoc = await getDoc(doc(db, 'exercises', exData.exercise_id));
+              
+              if (!exerciseDoc.exists()) return null;
+              
+              const exerciseData = exerciseDoc.data();
+              
+              return {
+                name: exerciseData.name,
+                prime_muscle: exerciseData.prime_muscle,
+                sets_count: exData.target_sets || 0,
+              };
+            })
+          );
+          
+          return {
+            id: workoutDoc.id,
+            planned_date: workoutData.scheduled_date?.toDate() || new Date(),
+            status: workoutData.status || 'scheduled',
+            day_index: workoutData.day_number || 0,
+            duration_minutes: workoutData.duration_minutes || null,
+            exercises: exercises.filter(ex => ex !== null),
+          };
+        })
+      );
+      
+      return workoutsWithExercises;
+    },
+    enabled: !!user?.uid && !!mesocycleId,
+  });
+}

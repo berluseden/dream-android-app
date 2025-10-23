@@ -1,18 +1,23 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useMesocycle } from '@/hooks/useMesocycles';
+import { useWorkoutsWithExercises } from '@/hooks/useWorkouts';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Target, Dumbbell, ArrowLeft, Clock, TrendingUp } from 'lucide-react';
-import { format, differenceInDays, addWeeks } from 'date-fns';
+import { Calendar, Target, Dumbbell, ArrowLeft, TrendingUp } from 'lucide-react';
+import { format, differenceInDays, addWeeks, startOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { WeeklyCalendarView } from '@/components/workouts/WeeklyCalendarView';
+import { useState } from 'react';
 
 export default function MesocycleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: mesocycle, isLoading } = useMesocycle(id);
+  const { data: workouts = [], isLoading: workoutsLoading } = useWorkoutsWithExercises(id);
+  const [selectedWeek, setSelectedWeek] = useState(0); // 0 = semana actual
   
   if (isLoading) {
     return (
@@ -163,19 +168,53 @@ export default function MesocycleDetail() {
         {/* Calendario de Entrenamientos */}
         <Card>
           <CardHeader>
-            <CardTitle>Calendario de Entrenamientos</CardTitle>
-            <CardDescription>
-              Vista detallada de tu programa semanal
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Calendario de Entrenamientos</CardTitle>
+                <CardDescription>
+                  Vista detallada de tu programa semanal
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedWeek(Math.max(0, selectedWeek - 1))}
+                  disabled={selectedWeek === 0}
+                >
+                  Anterior
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedWeek(Math.min(mesocycle.length_weeks - 1, selectedWeek + 1))}
+                  disabled={selectedWeek >= mesocycle.length_weeks - 1}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Vista de calendario próximamente...</p>
-              <p className="text-sm mt-2">
-                Aquí podrás ver todos tus entrenamientos programados
-              </p>
-            </div>
+            {workoutsLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Cargando entrenamientos...
+              </div>
+            ) : workouts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No hay entrenamientos programados para este mesociclo
+              </div>
+            ) : (
+              <WeeklyCalendarView 
+                workouts={workouts}
+                currentWeekStart={addWeeks(startOfWeek(startDate, { locale: es }), selectedWeek)}
+                onDayClick={(date, dayWorkouts) => {
+                  if (dayWorkouts.length > 0) {
+                    navigate(`/workout/${dayWorkouts[0].id}`);
+                  }
+                }}
+              />
+            )}
           </CardContent>
         </Card>
         
