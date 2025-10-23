@@ -1,10 +1,11 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
-import { useActiveMesocycle } from '@/hooks/useMesocycles';
+import { useActiveMesocycle, useMesocycles } from '@/hooks/useMesocycles';
 import { useTodayWorkout } from '@/hooks/useWorkouts';
 import { useWeeklySummary } from '@/hooks/useWeeklySummary';
 import { useStrengthProfile } from '@/hooks/useStrengthProfile';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { StatsGrid } from '@/components/ui/stat-card';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { InteractiveCard, FloatingCard } from '@/components/ui/interactive-card';
@@ -12,6 +13,8 @@ import { PageTransition, FadeIn } from '@/components/layout/PageTransition';
 import { useAchievements, sampleAchievements } from '@/components/gamification/AchievementSystem';
 import { TodayWorkoutWidget } from '@/components/workout/TodayWorkoutWidget';
 import { Link, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { 
   Dumbbell, 
   TrendingUp, 
@@ -34,6 +37,7 @@ import { motion } from 'framer-motion';
 export default function ModernDashboard() {
   const { profile, user } = useAuth();
   const { data: activeMesocycle } = useActiveMesocycle();
+  const { data: mesocycles } = useMesocycles();
   const { data: todayWorkout } = useTodayWorkout();
   const { data: weeklySummary } = useWeeklySummary(user?.uid || '');
   const { hasCompletedCalibration } = useStrengthProfile();
@@ -177,6 +181,40 @@ export default function ModernDashboard() {
           <FadeIn delay={0.2}>
             <StatsGrid stats={dashboardStats} />
           </FadeIn>
+          
+          {/* Historial de Mesociclos */}
+          {!activeMesocycle && mesocycles && mesocycles.length > 0 && (
+            <FadeIn delay={0.25}>
+              <InteractiveCard
+                title="Historial de Mesociclos"
+                icon={<Calendar className="h-5 w-5" />}
+                gradient="from-slate-500 to-gray-600"
+              >
+                <div className="space-y-2">
+                  {mesocycles
+                    .filter(m => m.status !== 'active')
+                    .slice(0, 3)
+                    .map((meso) => (
+                      <div 
+                        key={meso.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                        onClick={() => navigate(`/mesocycles/${meso.id}`)}
+                      >
+                        <div>
+                          <p className="font-medium">{meso.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(meso.start_date, "MMM yyyy", { locale: es })}
+                          </p>
+                        </div>
+                        <Badge variant={meso.status === 'completed' ? 'secondary' : 'outline'}>
+                          {meso.status === 'completed' ? 'Completado' : 'Pausado'}
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
+              </InteractiveCard>
+            </FadeIn>
+          )}
           
           {/* Progress Section */}
           <FadeIn delay={0.3}>

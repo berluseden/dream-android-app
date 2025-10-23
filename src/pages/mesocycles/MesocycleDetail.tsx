@@ -1,12 +1,29 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useMesocycle } from '@/hooks/useMesocycles';
+import { useMesocycle, useUpdateMesocycleStatus, useDeleteMesocycle } from '@/hooks/useMesocycles';
 import { useWorkoutsWithExercises } from '@/hooks/useWorkouts';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Target, Dumbbell, ArrowLeft, TrendingUp } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Calendar, Target, Dumbbell, ArrowLeft, TrendingUp, MoreVertical, Pause, CheckCircle2, Trash2, Play } from 'lucide-react';
 import { format, differenceInDays, addWeeks, startOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { WeeklyCalendarView } from '@/components/workouts/WeeklyCalendarView';
@@ -18,6 +35,47 @@ export default function MesocycleDetail() {
   const { data: mesocycle, isLoading } = useMesocycle(id);
   const { data: workouts = [], isLoading: workoutsLoading } = useWorkoutsWithExercises(id);
   const [selectedWeek, setSelectedWeek] = useState(0); // 0 = semana actual
+  
+  // Estado para diálogos
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
+  // Hooks de mutations
+  const updateStatus = useUpdateMesocycleStatus();
+  const deleteMesocycle = useDeleteMesocycle();
+  
+  // Handlers
+  const handlePause = () => {
+    updateStatus.mutate({ 
+      mesocycleId: id!, 
+      status: 'paused' 
+    });
+    setShowPauseDialog(false);
+  };
+
+  const handleComplete = () => {
+    updateStatus.mutate({ 
+      mesocycleId: id!, 
+      status: 'completed' 
+    });
+    setShowCompleteDialog(false);
+  };
+
+  const handleResume = () => {
+    updateStatus.mutate({ 
+      mesocycleId: id!, 
+      status: 'active' 
+    });
+  };
+
+  const handleDelete = () => {
+    deleteMesocycle.mutate(id!, {
+      onSuccess: () => {
+        navigate('/');
+      }
+    });
+  };
   
   if (isLoading) {
     return (
@@ -84,6 +142,48 @@ export default function MesocycleDetail() {
              mesocycle.status === 'completed' ? 'Completado' : 
              mesocycle.status === 'paused' ? 'Pausado' : 'Planificado'}
           </Badge>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {mesocycle.status === 'active' && (
+                <>
+                  <DropdownMenuItem onClick={() => setShowPauseDialog(true)}>
+                    <Pause className="mr-2 h-4 w-4" />
+                    Pausar Mesociclo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowCompleteDialog(true)}>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Marcar como Completado
+                  </DropdownMenuItem>
+                </>
+              )}
+              
+              {mesocycle.status === 'paused' && (
+                <DropdownMenuItem onClick={() => handleResume()}>
+                  <Play className="mr-2 h-4 w-4" />
+                  Reanudar Mesociclo
+                </DropdownMenuItem>
+              )}
+              
+              {mesocycle.status !== 'active' && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Eliminar Mesociclo
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         {/* Progress Card */}
@@ -227,6 +327,68 @@ export default function MesocycleDetail() {
             Ver Progreso
           </Button>
         </div>
+        
+        {/* Diálogo de Pausa */}
+        <AlertDialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Pausar este mesociclo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Podrás reanudar el mesociclo más adelante. Tus entrenamientos se mantendrán guardados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handlePause}>
+                Pausar Mesociclo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Diálogo de Completar */}
+        <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Marcar como completado?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esto marcará el mesociclo como finalizado. Podrás ver tus estadísticas y progreso en cualquier momento.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleComplete}>
+                Completar Mesociclo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Diálogo de Eliminar */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar este mesociclo?</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-2">
+                <p className="font-semibold text-destructive">
+                  ⚠️ Esta acción no se puede deshacer
+                </p>
+                <p>
+                  Se eliminarán todos los entrenamientos, ejercicios y datos de progreso asociados a este mesociclo.
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDelete}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Eliminar Permanentemente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );

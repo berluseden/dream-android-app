@@ -304,6 +304,98 @@ export function useUpdateMesocycleStatus() {
   });
 }
 
+export function useDeleteMesocycle() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (mesocycleId: string) => {
+      // ✅ VALIDACIÓN: No permitir eliminar mesociclo activo
+      const mesoDoc = await getDoc(doc(db, 'mesocycles', mesocycleId));
+      if (!mesoDoc.exists()) {
+        throw new Error('Mesociclo no encontrado');
+      }
+      
+      const mesoData = mesoDoc.data();
+      if (mesoData.status === 'active') {
+        throw new Error('No puedes eliminar un mesociclo activo. Primero páusalo o complétalo.');
+      }
+      
+      const batch = writeBatch(db);
+      
+      // 1. Eliminar mesociclo
+      batch.delete(doc(db, 'mesocycles', mesocycleId));
+      
+      // 2. Eliminar weekly_targets asociados
+      const targetsQuery = query(
+        collection(db, 'weekly_targets'),
+        where('mesocycle_id', '==', mesocycleId)
+      );
+      const targetsSnap = await getDocs(targetsQuery);
+      targetsSnap.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      // 3. Eliminar workouts asociados
+      const workoutsQuery = query(
+        collection(db, 'workouts'),
+        where('mesocycle_id', '==', mesocycleId)
+      );
+      const workoutsSnap = await getDocs(workoutsQuery);
+      const workoutIds = workoutsSnap.docs.map(d => d.id);
+      
+      workoutsSnap.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      // 4. Eliminar workout_exercises de esos workouts
+      for (const workoutId of workoutIds) {
+        const exercisesQuery = query(
+          collection(db, 'workout_exercises'),
+          where('workout_id', '==', workoutId)
+        );
+        const exercisesSnap = await getDocs(exercisesQuery);
+        exercisesSnap.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+      }
+      
+      // 5. Eliminar sets asociados
+      for (const workoutId of workoutIds) {
+        const setsQuery = query(
+          collection(db, 'sets'),
+          where('workout_id', '==', workoutId)
+        );
+        const setsSnap = await getDocs(setsQuery);
+        setsSnap.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+      }
+      
+      await batch.commit();
+      
+      return { deletedWorkouts: workoutIds.length };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['mesocycles'] });
+      queryClient.invalidateQueries({ queryKey: ['active-mesocycle'] });
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      
+      toast({
+        title: "Mesociclo eliminado",
+        description: `Se eliminaron ${result.deletedWorkouts} entrenamientos asociados`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al eliminar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
 // Helper Functions para generación automática de workouts
 
 /**
