@@ -1,20 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useMesocycles } from '@/hooks/useMesocycles';
+import { useMesocycle } from '@/hooks/useMesocycles';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, Target, Dumbbell, ArrowLeft, Clock, TrendingUp } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { format, differenceInDays, addWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function MesocycleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: mesocycles, isLoading } = useMesocycles(user?.uid);
+  const { data: mesocycle, isLoading } = useMesocycle(id);
   
   if (isLoading) {
     return (
@@ -30,9 +28,7 @@ export default function MesocycleDetail() {
     );
   }
   
-  const mesocycle = mesocycles?.find(m => m.id === id);
-  
-  if (!id || !mesocycle) {
+  if (!mesocycle) {
     return (
       <AppLayout>
         <div className="container mx-auto p-6">

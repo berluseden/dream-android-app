@@ -108,6 +108,29 @@ export function useActiveMesocycle(userId?: string) {
   });
 }
 
+export function useMesocycle(mesocycleId: string | undefined) {
+  return useQuery({
+    queryKey: ['mesocycle', mesocycleId],
+    queryFn: async () => {
+      if (!mesocycleId) return null;
+      
+      const docRef = doc(db, 'mesocycles', mesocycleId);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return null;
+      
+      return {
+        id: docSnap.id,
+        ...docSnap.data(),
+        start_date: docSnap.data().start_date?.toDate(),
+        created_at: docSnap.data().created_at?.toDate(),
+        updated_at: docSnap.data().updated_at?.toDate(),
+      } as Mesocycle;
+    },
+    enabled: !!mesocycleId,
+  });
+}
+
 export function useWeeklyTargets(mesocycleId: string) {
   return useQuery({
     queryKey: ['weekly-targets', mesocycleId],
