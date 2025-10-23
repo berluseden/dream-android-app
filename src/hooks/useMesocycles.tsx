@@ -73,6 +73,7 @@ export function useMesocycles(userId?: string) {
       })) as Mesocycle[];
     },
     enabled: !!targetUserId,
+    staleTime: 0, // Always refetch to get latest data
   });
 }
 
@@ -140,7 +141,7 @@ export function useCreateMesocycle() {
       length_weeks: number;
       specialization: string[];
       effort_scale: 'RIR' | 'RPE';
-      template_id?: string;         // Nuevo: ID del programa
+      template_id?: string;
       targets: Array<{
         muscle_id: string;
         sets_min: number;
@@ -155,13 +156,13 @@ export function useCreateMesocycle() {
       batch.set(mesoRef, {
         user_id: data.user_id,
         coach_id: null,
-        template_id: data.template_id || '',  // Vincular con programa
+        template_id: data.template_id || '',
         name: data.name,
         start_date: data.start_date,
         length_weeks: data.length_weeks,
         specialization: data.specialization,
         effort_scale: data.effort_scale,
-        status: 'active',  // Cambiar a active inmediatamente
+        status: 'active',
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
         created_by: user?.uid || '',
@@ -171,7 +172,6 @@ export function useCreateMesocycle() {
       // Create weekly targets with progression
       for (let week = 1; week <= data.length_weeks; week++) {
         for (const target of data.targets) {
-          // Progressive overload: 60% → 70% → 80% → 90% → 100% → 50% (deload)
           const progression = 
             week <= 1 ? 0.6 :
             week <= 2 ? 0.7 :
@@ -192,7 +192,9 @@ export function useCreateMesocycle() {
         }
       }
       
-      // ✨ NUEVO: Generar workouts automáticamente si hay template
+      await batch.commit();
+      
+      // Generate workouts AFTER batch commit
       if (data.template_id) {
         await generateWorkoutsFromTemplate(
           mesoRef.id,
@@ -203,11 +205,13 @@ export function useCreateMesocycle() {
         );
       }
       
-      await batch.commit();
       return { id: mesoRef.id };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mesocycles'] });
+    onSuccess: async (result) => {
+      // Invalidate and refetch immediately
+      await queryClient.invalidateQueries({ queryKey: ['mesocycles'] });
+      await queryClient.refetchQueries({ queryKey: ['mesocycles'] });
+      
       toast({
         title: "Mesociclo creado",
         description: "Tu plan de entrenamiento ha sido creado exitosamente",

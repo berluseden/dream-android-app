@@ -100,6 +100,8 @@ export default function CreateMesocycle() {
       template_id: templateId || undefined,
     });
 
+    // Small delay to ensure Firestore data is available
+    await new Promise(resolve => setTimeout(resolve, 500));
     navigate(`/mesocycles/${result.id}`);
   };
 
