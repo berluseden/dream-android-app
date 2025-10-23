@@ -42,11 +42,21 @@ export default function CreateMesocycle() {
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [volumeTargets, setVolumeTargets] = useState<Record<string, { min: number; max: number; target: number }>>({});
 
-  // ✨ NUEVO: Obtener template si viene de browse programs
+  // ✨ CORREGIDO: Obtener template desde URL (local o remoto)
   const { data: templateFromUrl } = useQuery<ProgramTemplate | null>({
     queryKey: ['template', templateIdFromUrl],
     queryFn: async () => {
       if (!templateIdFromUrl) return null;
+      
+      // ✅ Si es un template local (local-X)
+      if (templateIdFromUrl.startsWith('local-')) {
+        const { getLocalTemplates } = await import('@/hooks/usePrograms');
+        const localTemplates = getLocalTemplates();
+        const localIndex = parseInt(templateIdFromUrl.split('-')[1]);
+        return localTemplates[localIndex] || null;
+      }
+      
+      // ✅ Si es un template remoto de Firestore
       const templateRef = doc(db, 'templates', templateIdFromUrl);
       const templateSnap = await getDoc(templateRef);
       if (!templateSnap.exists()) return null;
@@ -411,21 +421,77 @@ export default function CreateMesocycle() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 {selectedTemplate ? (
-                  <Alert className="border-success/50 bg-success/5">
-                    <Check className="h-4 w-4" />
-                    <AlertTitle>Programa Seleccionado</AlertTitle>
-                    <AlertDescription>
-                      <p className="font-medium">{selectedTemplate.name}</p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedTemplate(null)}
-                        className="mt-2"
-                      >
-                        Cambiar programa
-                      </Button>
-                    </AlertDescription>
-                  </Alert>
+                  <div className="space-y-4">
+                    <Alert className="border-primary/50 bg-primary/5">
+                      <Check className="h-4 w-4 text-primary" />
+                      <AlertTitle>✅ Programa Seleccionado</AlertTitle>
+                      <AlertDescription>
+                        <div className="mt-3 space-y-3">
+                          <div>
+                            <h3 className="font-bold text-lg text-foreground">{selectedTemplate.name}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{selectedTemplate.description}</p>
+                          </div>
+                          
+                          {/* Badges con información del programa */}
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="secondary">
+                              📅 {selectedTemplate.weeks} semanas
+                            </Badge>
+                            <Badge variant="secondary">
+                              💪 {selectedTemplate.days_per_week} días/semana
+                            </Badge>
+                            <Badge variant="secondary">
+                              🏋️ {selectedTemplate.split}
+                            </Badge>
+                            {selectedTemplate.level && (
+                              <Badge variant="outline">
+                                {selectedTemplate.level === 'beginner' ? '🟢 Principiante' : 
+                                 selectedTemplate.level === 'intermediate' ? '🟡 Intermedio' : 
+                                 '🔴 Avanzado'}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Vista previa de sesiones */}
+                          {selectedTemplate.sessions && selectedTemplate.sessions.length > 0 && (
+                            <div className="border rounded-lg p-3 bg-background/50">
+                              <h4 className="font-semibold text-sm mb-2 text-foreground">
+                                Vista Previa de Entrenamientos:
+                              </h4>
+                              <div className="space-y-2 max-h-60 overflow-y-auto">
+                                {selectedTemplate.sessions.slice(0, 3).map((session: any, idx: number) => (
+                                  <div key={idx} className="text-sm border-l-2 border-primary pl-3 py-1">
+                                    <p className="font-medium text-foreground">{session.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {session.blocks?.length || 0} ejercicios
+                                    </p>
+                                  </div>
+                                ))}
+                                {selectedTemplate.sessions.length > 3 && (
+                                  <p className="text-xs text-muted-foreground pl-3">
+                                    +{selectedTemplate.sessions.length - 3} días más...
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTemplate(null);
+                              // Limpiar el template de la URL
+                              navigate('/mesocycles/create', { replace: true });
+                            }}
+                            className="w-full"
+                          >
+                            🔄 Cambiar Programa
+                          </Button>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </div>
                  ) : (
                   <div className="text-center py-8 border-2 border-dashed rounded-lg">
                     <p className="text-muted-foreground mb-4">
