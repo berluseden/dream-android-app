@@ -656,12 +656,23 @@ function getTrainingSchedule(frequency: number): number[] {
 }
 
 /**
- * Busca el ID de un ejercicio por su nombre (con matching fuzzy)
+ * Busca un ejercicio por nombre en Firestore con traducción automática y fuzzy matching
  */
 async function findExerciseIdByName(exerciseName: string): Promise<string | null> {
   try {
+    // Importar dinámicamente el diccionario de traducciones
+    const { translateExerciseName } = await import('@/lib/exerciseTranslations');
+    
+    // Intentar traducir primero si está en inglés
+    const translatedName = translateExerciseName(exerciseName);
+    const searchName = translatedName !== exerciseName ? translatedName : exerciseName;
+    
+    if (translatedName !== exerciseName) {
+      console.log(`🌐 Traducción: "${exerciseName}" → "${translatedName}"`);
+    }
+    
     const exercisesRef = collection(db, 'exercises');
-    const q = query(exercisesRef, limit(100));
+    const q = query(exercisesRef, limit(200));
     const snapshot = await getDocs(q);
     
     // Función de normalización mejorada
@@ -676,7 +687,7 @@ async function findExerciseIdByName(exerciseName: string): Promise<string | null
          .replace(/ó/g, 'o')
          .replace(/ú/g, 'u');
     
-    const normalizedSearch = normalize(exerciseName);
+    const normalizedSearch = normalize(searchName);
     const searchWords = normalizedSearch.split(' ');
     
     // 1. Match exacto
@@ -704,7 +715,7 @@ async function findExerciseIdByName(exerciseName: string): Promise<string | null
       }
     }
     
-    // 3. Fuzzy matching (al menos 70% de palabras coinciden)
+    // 3. Fuzzy matching (al menos 60% de palabras coinciden)
     for (const doc of snapshot.docs) {
       const data = doc.data();
       if (!data.name) continue;
@@ -717,13 +728,13 @@ async function findExerciseIdByName(exerciseName: string): Promise<string | null
       ).length;
       
       const matchRatio = matchCount / searchWords.length;
-      if (matchRatio >= 0.7) {
+      if (matchRatio >= 0.6) {
         console.log(`⚠️ Fuzzy match (${Math.round(matchRatio * 100)}%): "${exerciseName}" → "${data.name}"`);
         return doc.id;
       }
     }
     
-    console.warn(`❌ No se encontró ejercicio para: "${exerciseName}"`);
+    console.warn(`❌ No se encontró ejercicio para: "${exerciseName}" (búsqueda: "${searchName}")`);
     return null;
   } catch (error) {
     console.error('Error finding exercise:', error);

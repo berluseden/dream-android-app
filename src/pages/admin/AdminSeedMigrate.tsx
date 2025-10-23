@@ -46,17 +46,22 @@ export default function AdminSeedMigrate() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Migración de Templates</CardTitle>
+          <CardTitle>Inicialización Completa del Sistema</CardTitle>
           <CardDescription>
-            Migra todos los programas locales (JSON) a Firestore con IDs reales
+            Crea músculos, ~50 ejercicios y migra templates de programas a Firestore
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Esta operación creará documentos en la colección 'templates' de Firestore.
-              Ejecuta esto ANTES de crear mesociclos para que los programas tengan IDs consistentes.
+              <strong>Esta operación creará:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>10 grupos musculares base</li>
+                <li>~50 ejercicios (pecho, espalda, piernas, hombros, brazos)</li>
+                <li>10 programas de entrenamiento con IDs reales</li>
+              </ul>
+              <p className="mt-2 text-xs">Ejecuta esto ANTES de crear mesociclos.</p>
             </AlertDescription>
           </Alert>
           <Button
@@ -65,13 +70,13 @@ export default function AdminSeedMigrate() {
             className="w-full"
           >
             <Database className="mr-2 h-4 w-4" />
-            {seedCatalogs.isPending ? 'Migrando Templates...' : 'Migrar Templates a Firestore'}
+            {seedCatalogs.isPending ? 'Ejecutando Seed Completo...' : 'Ejecutar Seed Completo (Músculos + Ejercicios + Templates)'}
           </Button>
           {seedCatalogs.isSuccess && lastAction === 'seed' && (
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                ✅ Migración completada. Todos los programas ahora tienen IDs reales en Firestore.
+                ✅ Seed completado exitosamente. Todos los catálogos están listos.
               </AlertDescription>
             </Alert>
           )}

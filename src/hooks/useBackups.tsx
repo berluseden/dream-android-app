@@ -4,7 +4,7 @@ import { db, functions } from '@/lib/firebase';
 import { httpsCallable } from 'firebase/functions';
 import { toast } from '@/hooks/use-toast';
 import { BackupJob, BackupScope } from '@/types/admin.types';
-import { seedTemplates } from '@/scripts/seedFirestore';
+import { runSeed } from '@/scripts/seedFirestore';
 
 export function useBackupJobs() {
   return useQuery({
@@ -72,22 +72,24 @@ export function useReindexFields() {
 export function useSeedCatalogs() {
   return useMutation({
     mutationFn: async () => {
-      // Ejecutar migración local de templates
-      const result = await seedTemplates();
-      return { success: true, templateIds: result };
+      // Ejecutar seed completo (músculos, ejercicios, templates)
+      const result = await runSeed();
+      return result;
     },
     onSuccess: (data) => {
-      toast({
-        title: 'Templates migrados exitosamente',
-        description: `${data.templateIds.length} programas han sido cargados a Firestore`,
-      });
+      if (data.success && data.details) {
+        toast({
+          title: 'Sistema inicializado exitosamente',
+          description: `${data.details.muscles} músculos, ${data.details.exercises} ejercicios, ${data.details.templates} programas`,
+        });
+      }
     },
     onError: (error: any) => {
-      console.error('Error migrando templates:', error);
+      console.error('Error en seed completo:', error);
       toast({
         variant: 'destructive',
-        title: 'Error en migración',
-        description: error.message || 'No se pudieron migrar los templates',
+        title: 'Error en inicialización',
+        description: error.message || 'No se pudo completar el seed',
       });
     },
   });

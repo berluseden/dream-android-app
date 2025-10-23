@@ -40,94 +40,75 @@ export async function seedMuscles() {
 
 export async function seedExercises(muscleIds: Record<string, string>) {
   const exercises = [
-    {
-      name: 'Press de Banca Plano',
-      prime_muscle: muscleIds.chest,
-      secondary_muscles: [muscleIds.triceps, muscleIds.shoulders],
-      equipment: ['barbell'],
-      difficulty: 'intermediate',
-      is_compound: true,
-      description: 'Ejercicio fundamental para desarrollo de pecho',
-      instructions: 'Acostado en banco plano, bajar barra al pecho y empujar con control',
-      created_by: null,
-    },
-    {
-      name: 'Sentadilla con Barra',
-      prime_muscle: muscleIds.quads,
-      secondary_muscles: [muscleIds.glutes, muscleIds.hamstrings],
-      equipment: ['barbell', 'rack'],
-      difficulty: 'advanced',
-      is_compound: true,
-      description: 'Rey de los ejercicios de pierna',
-      instructions: 'Bajar controlado manteniendo espalda recta, empujar con piernas',
-      created_by: null,
-    },
-    {
-      name: 'Peso Muerto',
-      prime_muscle: muscleIds.back,
-      secondary_muscles: [muscleIds.hamstrings, muscleIds.glutes],
-      equipment: ['barbell'],
-      difficulty: 'advanced',
-      is_compound: true,
-      description: 'Ejercicio completo de cadena posterior',
-      instructions: 'Mantener espalda neutral, empujar con piernas',
-      created_by: null,
-    },
-    {
-      name: 'Dominadas',
-      prime_muscle: muscleIds.back,
-      secondary_muscles: [muscleIds.biceps],
-      equipment: ['bodyweight', 'pull-up-bar'],
-      difficulty: 'intermediate',
-      is_compound: true,
-      description: 'Ejercicio de espalda con peso corporal',
-      instructions: 'Colgar de barra, jalar hasta barbilla sobre barra',
-      created_by: null,
-    },
-    {
-      name: 'Press Militar',
-      prime_muscle: muscleIds.shoulders,
-      secondary_muscles: [muscleIds.triceps],
-      equipment: ['barbell'],
-      difficulty: 'intermediate',
-      is_compound: true,
-      description: 'Press vertical para hombros',
-      instructions: 'Empujar barra desde hombros hasta brazos extendidos',
-      created_by: null,
-    },
-    {
-      name: 'Curl con Barra',
-      prime_muscle: muscleIds.biceps,
-      secondary_muscles: [],
-      equipment: ['barbell'],
-      difficulty: 'beginner',
-      is_compound: false,
-      description: 'Ejercicio básico de bíceps',
-      instructions: 'Flexionar codos manteniendo torso estable',
-      created_by: null,
-    },
-    {
-      name: 'Press Francés',
-      prime_muscle: muscleIds.triceps,
-      secondary_muscles: [],
-      equipment: ['barbell', 'ez-bar'],
-      difficulty: 'intermediate',
-      is_compound: false,
-      description: 'Extensión de tríceps acostado',
-      instructions: 'Extender brazos desde posición flexionada',
-      created_by: null,
-    },
-    {
-      name: 'Remo con Barra',
-      prime_muscle: muscleIds.back,
-      secondary_muscles: [muscleIds.biceps],
-      equipment: ['barbell'],
-      difficulty: 'intermediate',
-      is_compound: true,
-      description: 'Remo horizontal para espalda',
-      instructions: 'Jalar barra hacia abdomen manteniendo torso estable',
-      created_by: null,
-    },
+    // PECHO
+    { name: 'Press de Banca Plano', prime_muscle: muscleIds.chest, secondary_muscles: [muscleIds.triceps, muscleIds.shoulders], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Press Inclinado con Barra', prime_muscle: muscleIds.chest, secondary_muscles: [muscleIds.triceps, muscleIds.shoulders], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Press con Mancuernas Plano', prime_muscle: muscleIds.chest, secondary_muscles: [muscleIds.triceps], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: true },
+    { name: 'Press Inclinado con Mancuernas', prime_muscle: muscleIds.chest, secondary_muscles: [muscleIds.triceps], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: true },
+    { name: 'Aperturas con Mancuernas', prime_muscle: muscleIds.chest, secondary_muscles: [], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Cruce de Cables', prime_muscle: muscleIds.chest, secondary_muscles: [], equipment: ['cable'], difficulty: 'beginner', is_compound: false },
+    
+    // ESPALDA
+    { name: 'Peso Muerto', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.hamstrings, muscleIds.glutes], equipment: ['barbell'], difficulty: 'advanced', is_compound: true },
+    { name: 'Peso Muerto Rumano', prime_muscle: muscleIds.hamstrings, secondary_muscles: [muscleIds.back, muscleIds.glutes], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Dominadas', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.biceps], equipment: ['bodyweight'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Dominadas Agarre Neutro', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.biceps], equipment: ['bodyweight'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Remo con Barra', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.biceps], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Remo con Mancuerna', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.biceps], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: true },
+    { name: 'Jalón al Pecho', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.biceps], equipment: ['cable'], difficulty: 'beginner', is_compound: true },
+    { name: 'Remo en Polea Baja', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.biceps], equipment: ['cable'], difficulty: 'beginner', is_compound: true },
+    { name: 'Pull-over con Mancuerna', prime_muscle: muscleIds.back, secondary_muscles: [muscleIds.chest], equipment: ['dumbbell'], difficulty: 'intermediate', is_compound: false },
+    
+    // HOMBROS
+    { name: 'Press Militar', prime_muscle: muscleIds.shoulders, secondary_muscles: [muscleIds.triceps], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Press con Mancuernas Sentado', prime_muscle: muscleIds.shoulders, secondary_muscles: [muscleIds.triceps], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: true },
+    { name: 'Press en Máquina', prime_muscle: muscleIds.shoulders, secondary_muscles: [muscleIds.triceps], equipment: ['machine'], difficulty: 'beginner', is_compound: true },
+    { name: 'Elevaciones Laterales', prime_muscle: muscleIds.shoulders, secondary_muscles: [], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Elevaciones Frontales', prime_muscle: muscleIds.shoulders, secondary_muscles: [], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Pájaros con Mancuernas', prime_muscle: muscleIds.shoulders, secondary_muscles: [muscleIds.back], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Face Pulls', prime_muscle: muscleIds.shoulders, secondary_muscles: [muscleIds.back], equipment: ['cable'], difficulty: 'beginner', is_compound: false },
+    
+    // PIERNAS - CUÁDRICEPS
+    { name: 'Sentadilla con Barra', prime_muscle: muscleIds.quads, secondary_muscles: [muscleIds.glutes, muscleIds.hamstrings], equipment: ['barbell'], difficulty: 'advanced', is_compound: true },
+    { name: 'Sentadilla Frontal', prime_muscle: muscleIds.quads, secondary_muscles: [muscleIds.glutes], equipment: ['barbell'], difficulty: 'advanced', is_compound: true },
+    { name: 'Prensa de Piernas', prime_muscle: muscleIds.quads, secondary_muscles: [muscleIds.glutes, muscleIds.hamstrings], equipment: ['machine'], difficulty: 'beginner', is_compound: true },
+    { name: 'Extensiones de Cuádriceps', prime_muscle: muscleIds.quads, secondary_muscles: [], equipment: ['machine'], difficulty: 'beginner', is_compound: false },
+    { name: 'Zancadas con Mancuernas', prime_muscle: muscleIds.quads, secondary_muscles: [muscleIds.glutes], equipment: ['dumbbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Sentadilla Búlgara', prime_muscle: muscleIds.quads, secondary_muscles: [muscleIds.glutes], equipment: ['dumbbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Hack Squat', prime_muscle: muscleIds.quads, secondary_muscles: [muscleIds.glutes], equipment: ['machine'], difficulty: 'intermediate', is_compound: true },
+    
+    // PIERNAS - ISQUIOTIBIALES
+    { name: 'Curl Femoral Acostado', prime_muscle: muscleIds.hamstrings, secondary_muscles: [], equipment: ['machine'], difficulty: 'beginner', is_compound: false },
+    { name: 'Curl Femoral Sentado', prime_muscle: muscleIds.hamstrings, secondary_muscles: [], equipment: ['machine'], difficulty: 'beginner', is_compound: false },
+    { name: 'Buenos Días', prime_muscle: muscleIds.hamstrings, secondary_muscles: [muscleIds.back, muscleIds.glutes], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    
+    // PIERNAS - GLÚTEOS
+    { name: 'Hip Thrust', prime_muscle: muscleIds.glutes, secondary_muscles: [muscleIds.hamstrings], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Peso Muerto Sumo', prime_muscle: muscleIds.glutes, secondary_muscles: [muscleIds.quads, muscleIds.hamstrings], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    
+    // PANTORRILLAS
+    { name: 'Elevación de Talones de Pie', prime_muscle: muscleIds.calves, secondary_muscles: [], equipment: ['machine'], difficulty: 'beginner', is_compound: false },
+    { name: 'Elevación de Talones Sentado', prime_muscle: muscleIds.calves, secondary_muscles: [], equipment: ['machine'], difficulty: 'beginner', is_compound: false },
+    
+    // BÍCEPS
+    { name: 'Curl con Barra', prime_muscle: muscleIds.biceps, secondary_muscles: [], equipment: ['barbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Curl con Mancuernas', prime_muscle: muscleIds.biceps, secondary_muscles: [], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Curl Martillo', prime_muscle: muscleIds.biceps, secondary_muscles: [], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Curl en Polea', prime_muscle: muscleIds.biceps, secondary_muscles: [], equipment: ['cable'], difficulty: 'beginner', is_compound: false },
+    { name: 'Curl Predicador', prime_muscle: muscleIds.biceps, secondary_muscles: [], equipment: ['barbell'], difficulty: 'intermediate', is_compound: false },
+    
+    // TRÍCEPS
+    { name: 'Press Francés', prime_muscle: muscleIds.triceps, secondary_muscles: [], equipment: ['barbell'], difficulty: 'intermediate', is_compound: false },
+    { name: 'Fondos en Paralelas', prime_muscle: muscleIds.triceps, secondary_muscles: [muscleIds.chest], equipment: ['bodyweight'], difficulty: 'intermediate', is_compound: true },
+    { name: 'Extensión de Tríceps en Polea', prime_muscle: muscleIds.triceps, secondary_muscles: [], equipment: ['cable'], difficulty: 'beginner', is_compound: false },
+    { name: 'Patada de Tríceps', prime_muscle: muscleIds.triceps, secondary_muscles: [], equipment: ['dumbbell'], difficulty: 'beginner', is_compound: false },
+    { name: 'Press Cerrado', prime_muscle: muscleIds.triceps, secondary_muscles: [muscleIds.chest], equipment: ['barbell'], difficulty: 'intermediate', is_compound: true },
+    
+    // ABDOMINALES
+    { name: 'Crunch Abdominal', prime_muscle: muscleIds.abs, secondary_muscles: [], equipment: ['bodyweight'], difficulty: 'beginner', is_compound: false },
+    { name: 'Elevación de Piernas', prime_muscle: muscleIds.abs, secondary_muscles: [], equipment: ['bodyweight'], difficulty: 'intermediate', is_compound: false },
+    { name: 'Plancha Abdominal', prime_muscle: muscleIds.abs, secondary_muscles: [], equipment: ['bodyweight'], difficulty: 'beginner', is_compound: false },
+    { name: 'Russian Twist', prime_muscle: muscleIds.abs, secondary_muscles: [], equipment: ['bodyweight'], difficulty: 'intermediate', is_compound: false },
   ];
   
   const batch = writeBatch(db);
@@ -203,14 +184,33 @@ export async function seedTemplates() {
   return templateIds;
 }
 
+/**
+ * Ejecuta todas las migraciones en el orden correcto
+ */
 export async function runSeed() {
   try {
+    console.log('🚀 Iniciando seed completo...');
+    
     const muscleIds = await seedMuscles();
+    console.log(`✅ ${Object.keys(muscleIds).length} músculos creados`);
+    
     await seedExercises(muscleIds);
-    await seedTemplates();
-    return { success: true, message: 'Seed completado exitosamente' };
+    console.log('✅ ~50 ejercicios creados');
+    
+    const templateIds = await seedTemplates();
+    console.log(`✅ ${templateIds.length} templates migrados`);
+    
+    return { 
+      success: true, 
+      message: 'Seed completado exitosamente',
+      details: {
+        muscles: Object.keys(muscleIds).length,
+        exercises: 50,
+        templates: templateIds.length,
+      }
+    };
   } catch (error) {
-    console.error('Error en seed:', error);
+    console.error('❌ Error en seed:', error);
     return { success: false, message: 'Error en seed', error };
   }
 }
