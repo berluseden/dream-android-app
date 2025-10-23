@@ -87,6 +87,8 @@ export function useActiveMesocycle(userId?: string) {
     queryFn: async () => {
       if (!targetUserId) return null;
       
+      console.log('🔍 Buscando mesociclo activo para user:', targetUserId);
+      
       const q = query(
         collection(db, 'mesocycles'),
         where('user_id', '==', targetUserId),
@@ -94,18 +96,26 @@ export function useActiveMesocycle(userId?: string) {
       );
       
       const snapshot = await getDocs(q);
-      if (snapshot.empty) return null;
+      
+      if (snapshot.empty) {
+        console.log('❌ No se encontró mesociclo activo');
+        return null;
+      }
       
       const doc = snapshot.docs[0];
-      return {
+      const mesocycleData = {
         id: doc.id,
         ...doc.data(),
         start_date: doc.data().start_date?.toDate(),
         created_at: doc.data().created_at?.toDate(),
         updated_at: doc.data().updated_at?.toDate(),
       } as Mesocycle;
+      
+      console.log('✅ Mesociclo activo encontrado:', mesocycleData.name, mesocycleData.id);
+      return mesocycleData;
     },
     enabled: !!targetUserId,
+    staleTime: 0, // ✅ CORREGIDO: Always refetch to get latest data
   });
 }
 
@@ -231,6 +241,8 @@ export function useCreateMesocycle() {
       
       await batch.commit();
       
+      console.log('✅ Mesociclo guardado en Firestore:', mesoRef.id);
+      
       // ✨ Generate workouts AFTER batch commit
       if (data.template_id) {
         // Show loading toast
@@ -302,9 +314,20 @@ export function useCreateMesocycle() {
       return { id: mesoRef.id };
     },
     onSuccess: async (result) => {
-      // Invalidate and refetch immediately
+      console.log('🎉 onSuccess llamado, invalidando queries...');
+      
+      // ✅ CORREGIDO: Invalidar TODAS las queries de mesociclos
       await queryClient.invalidateQueries({ queryKey: ['mesocycles'] });
+      await queryClient.invalidateQueries({ queryKey: ['active-mesocycle'] });
+      await queryClient.invalidateQueries({ queryKey: ['mesocycle'] });
+      
+      console.log('🔄 Refetching queries...');
+      
+      // Refetch para asegurar que los datos estén disponibles
       await queryClient.refetchQueries({ queryKey: ['mesocycles'] });
+      await queryClient.refetchQueries({ queryKey: ['active-mesocycle'] });
+      
+      console.log('✅ Queries actualizadas correctamente');
       
       toast({
         title: "Mesociclo creado",

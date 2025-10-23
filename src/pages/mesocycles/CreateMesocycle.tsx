@@ -128,9 +128,12 @@ export default function CreateMesocycle() {
         template_id: selectedTemplate?.id || undefined,
       });
 
-      // Small delay to ensure Firestore data is available
-      await new Promise(resolve => setTimeout(resolve, 500));
-      navigate(`/mesocycles/${result.id}`);
+      // ✅ CORREGIDO: Esperar más tiempo para que se completen todas las operaciones
+      // y las queries se invaliden/refresquen
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // ✅ CORREGIDO: Navegar al dashboard en lugar del detalle
+      navigate('/');
     } catch (error: any) {
       // Error is already handled by the mutation's onError
       console.error('Error creating mesocycle:', error);
