@@ -131,8 +131,11 @@ export default function CreateMesocycle() {
         template_id: selectedTemplate.id,
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigate(`/mesocycles/${result.id}/calendar`);
+      // ✅ Esperar a que se completen las operaciones async y queries
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // ✅ Navegar al dashboard que mostrará el nuevo mesociclo activo
+      navigate('/');
     } catch (error: any) {
       console.error('Error creating mesocycle:', error);
     }
@@ -160,15 +163,11 @@ export default function CreateMesocycle() {
         template_id: selectedTemplate?.id || undefined,
       });
 
-      // ✅ NUEVO: Si tiene template, redirigir al calendario del mesociclo
-      // Si no tiene template, ir al dashboard
-      if (selectedTemplate) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        navigate(`/mesocycles/${result.id}/calendar`);
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        navigate('/');
-      }
+      // ✅ Esperar a que se completen todas las operaciones async y queries se invaliden
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // ✅ Siempre navegar al dashboard que mostrará el nuevo mesociclo activo
+      navigate('/');
     } catch (error: any) {
       // Error is already handled by the mutation's onError
       console.error('Error creating mesocycle:', error);
