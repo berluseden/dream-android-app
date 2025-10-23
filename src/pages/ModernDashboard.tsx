@@ -151,15 +151,17 @@ export default function ModernDashboard() {
                       </Button>
                     )}
                     
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => navigate('/mesocycles/create')}
-                      className="gap-2"
-                    >
-                      <Plus className="h-5 w-5" />
-                      Nuevo Mesociclo
-                    </Button>
+                    {!activeMesocycle && (
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => navigate('/mesocycles/create')}
+                        className="gap-2"
+                      >
+                        <Plus className="h-5 w-5" />
+                        Nuevo Mesociclo
+                      </Button>
+                    )}
                   </div>
                 </motion.div>
               </div>

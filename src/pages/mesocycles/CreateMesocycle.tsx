@@ -17,7 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { CalendarIcon, ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, ArrowRight, Check, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { ProgramTemplate } from '@/hooks/usePrograms';
@@ -25,7 +25,7 @@ import type { ProgramTemplate } from '@/hooks/usePrograms';
 export default function CreateMesocycle() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const templateId = searchParams.get('template');
+  const templateIdFromUrl = searchParams.get('template');
   
   const { user } = useAuth();
   const { data: muscles } = useMuscles();
@@ -36,29 +36,31 @@ export default function CreateMesocycle() {
   const [startDate, setStartDate] = useState<Date>();
   const [lengthWeeks, setLengthWeeks] = useState(6);
   const [effortScale, setEffortScale] = useState<'RIR' | 'RPE'>('RIR');
+  const [selectedTemplate, setSelectedTemplate] = useState<ProgramTemplate | null>(null);
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [volumeTargets, setVolumeTargets] = useState<Record<string, { min: number; max: number; target: number }>>({});
 
   // ✨ NUEVO: Obtener template si viene de browse programs
-  const { data: selectedTemplate } = useQuery<ProgramTemplate | null>({
-    queryKey: ['template', templateId],
+  const { data: templateFromUrl } = useQuery<ProgramTemplate | null>({
+    queryKey: ['template', templateIdFromUrl],
     queryFn: async () => {
-      if (!templateId) return null;
-      const templateRef = doc(db, 'templates', templateId);
+      if (!templateIdFromUrl) return null;
+      const templateRef = doc(db, 'templates', templateIdFromUrl);
       const templateSnap = await getDoc(templateRef);
       if (!templateSnap.exists()) return null;
       return { id: templateSnap.id, ...templateSnap.data() } as ProgramTemplate;
     },
-    enabled: !!templateId,
+    enabled: !!templateIdFromUrl,
   });
 
-  // ✨ NUEVO: Pre-llenar campos con datos del template
+  // ✨ NUEVO: Pre-llenar campos con datos del template de URL
   useEffect(() => {
-    if (selectedTemplate && !name) {
-      setName(`Mesociclo ${selectedTemplate.name}`);
-      setLengthWeeks(selectedTemplate.weeks || 6);
+    if (templateFromUrl && !selectedTemplate) {
+      setSelectedTemplate(templateFromUrl);
+      setName(`Mesociclo ${templateFromUrl.name}`);
+      setLengthWeeks(templateFromUrl.weeks || 6);
     }
-  }, [selectedTemplate, name]);
+  }, [templateFromUrl, selectedTemplate]);
 
   const toggleMuscle = (muscleId: string) => {
     setSelectedMuscles(prev => 
@@ -82,31 +84,37 @@ export default function CreateMesocycle() {
   const handleSubmit = async () => {
     if (!user || !startDate) return;
 
-    const targets = selectedMuscles.map(muscleId => ({
-      muscle_id: muscleId,
-      sets_min: volumeTargets[muscleId].min,
-      sets_max: volumeTargets[muscleId].max,
-      sets_target: volumeTargets[muscleId].target,
-    }));
+    try {
+      const targets = selectedMuscles.map(muscleId => ({
+        muscle_id: muscleId,
+        sets_min: volumeTargets[muscleId].min,
+        sets_max: volumeTargets[muscleId].max,
+        sets_target: volumeTargets[muscleId].target,
+      }));
 
-    const result = await createMesocycle.mutateAsync({
-      user_id: user.uid,
-      name,
-      start_date: startDate,
-      length_weeks: lengthWeeks,
-      specialization: selectedMuscles,
-      effort_scale: effortScale,
-      targets,
-      template_id: templateId || undefined,
-    });
+      const result = await createMesocycle.mutateAsync({
+        user_id: user.uid,
+        name,
+        start_date: startDate,
+        length_weeks: lengthWeeks,
+        specialization: selectedMuscles,
+        effort_scale: effortScale,
+        targets,
+        template_id: selectedTemplate?.id || undefined,
+      });
 
-    // Small delay to ensure Firestore data is available
-    await new Promise(resolve => setTimeout(resolve, 500));
-    navigate(`/mesocycles/${result.id}`);
+      // Small delay to ensure Firestore data is available
+      await new Promise(resolve => setTimeout(resolve, 500));
+      navigate(`/mesocycles/${result.id}`);
+    } catch (error: any) {
+      // Error is already handled by the mutation's onError
+      console.error('Error creating mesocycle:', error);
+    }
   };
 
   const canContinueStep1 = name && startDate && lengthWeeks >= 4 && lengthWeeks <= 8;
-  const canContinueStep2 = selectedMuscles.length > 0;
+  const canContinueStep2 = true; // Siempre puede continuar (con o sin programa)
+  const canContinueStep3 = selectedMuscles.length > 0;
   const canSubmit = selectedMuscles.every(id => volumeTargets[id]);
 
   return (
@@ -118,12 +126,12 @@ export default function CreateMesocycle() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Crear Mesociclo</h1>
-            <p className="text-muted-foreground">Paso {step} de 3</p>
+            <p className="text-muted-foreground">Paso {step} de 4</p>
           </div>
         </div>
 
         <div className="flex gap-2 mb-6">
-          {[1, 2, 3].map(s => (
+          {[1, 2, 3, 4].map(s => (
             <div
               key={s}
               className={cn(
@@ -134,7 +142,7 @@ export default function CreateMesocycle() {
           ))}
         </div>
 
-        {/* ✨ NUEVO: Mostrar programa seleccionado */}
+        {/* ✨ Mostrar programa seleccionado */}
         {selectedTemplate && (
           <Alert className="mb-6 border-primary/50 bg-primary/5">
             <Sparkles className="h-4 w-4" />
@@ -243,6 +251,65 @@ export default function CreateMesocycle() {
         {step === 2 && (
           <Card>
             <CardHeader>
+              <CardTitle>Seleccionar Programa (Opcional)</CardTitle>
+              <CardDescription>Elige un programa predefinido o continúa para crear uno manual</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                {selectedTemplate ? (
+                  <Alert className="border-success/50 bg-success/5">
+                    <Check className="h-4 w-4" />
+                    <AlertTitle>Programa Seleccionado</AlertTitle>
+                    <AlertDescription>
+                      <p className="font-medium">{selectedTemplate.name}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedTemplate(null)}
+                        className="mt-2"
+                      >
+                        Cambiar programa
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                    <p className="text-muted-foreground mb-4">
+                      Puedes elegir un programa del catálogo o crear uno manual
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate('/programs/browse')}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Explorar Programas
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Atrás
+                </Button>
+                <Button
+                  onClick={() => setStep(3)}
+                  className="flex-1"
+                >
+                  Continuar
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === 3 && (
+          <Card>
+            <CardHeader>
               <CardTitle>Grupos Musculares Priorizados</CardTitle>
               <CardDescription>Selecciona los músculos en los que quieres enfocarte</CardDescription>
             </CardHeader>
@@ -264,13 +331,13 @@ export default function CreateMesocycle() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Atrás
                 </Button>
                 <Button
-                  onClick={() => setStep(3)}
-                  disabled={!canContinueStep2}
+                  onClick={() => setStep(4)}
+                  disabled={!canContinueStep3}
                   className="flex-1"
                 >
                   Continuar
@@ -281,7 +348,7 @@ export default function CreateMesocycle() {
           </Card>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <Card>
             <CardHeader>
               <CardTitle>Configuración de Volumen</CardTitle>
@@ -313,7 +380,7 @@ export default function CreateMesocycle() {
               })}
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Atrás
                 </Button>
@@ -322,8 +389,17 @@ export default function CreateMesocycle() {
                   disabled={!canSubmit || createMesocycle.isPending}
                   className="flex-1"
                 >
-                  <Check className="mr-2 h-4 w-4" />
-                  Crear Mesociclo
+                  {createMesocycle.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Crear Mesociclo
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

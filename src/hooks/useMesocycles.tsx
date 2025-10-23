@@ -17,7 +17,7 @@ import {
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { addDays, addWeeks } from 'date-fns';
+import { addDays, addWeeks, format } from 'date-fns';
 import type { ProgramTemplate } from './usePrograms';
 
 export interface Mesocycle {
@@ -172,6 +172,19 @@ export function useCreateMesocycle() {
         sets_target: number;
       }>;
     }) => {
+      // ✅ VALIDACIÓN: Verificar que no haya otro mesociclo activo
+      const activeQuery = query(
+        collection(db, 'mesocycles'),
+        where('user_id', '==', data.user_id),
+        where('status', '==', 'active')
+      );
+      const activeSnap = await getDocs(activeQuery);
+      
+      if (!activeSnap.empty) {
+        const activeMeso = activeSnap.docs[0].data();
+        throw new Error(`Ya tienes un mesociclo activo: "${activeMeso.name}". Complétalo o páusalo primero.`);
+      }
+      
       const batch = writeBatch(db);
       
       // Create mesocycle
@@ -217,15 +230,35 @@ export function useCreateMesocycle() {
       
       await batch.commit();
       
-      // Generate workouts AFTER batch commit
+      // ✨ Generate workouts AFTER batch commit
       if (data.template_id) {
-        await generateWorkoutsFromTemplate(
-          mesoRef.id,
-          data.template_id,
-          data.start_date,
-          data.length_weeks,
-          data.user_id
-        );
+        // Show loading toast
+        toast({
+          title: "Generando entrenamientos...",
+          description: "Esto puede tomar unos segundos",
+        });
+        
+        try {
+          const workoutsGenerated = await generateWorkoutsFromTemplate(
+            mesoRef.id,
+            data.template_id,
+            data.start_date,
+            data.length_weeks,
+            data.user_id
+          );
+          
+          toast({
+            title: "✅ Entrenamientos creados",
+            description: `Se generaron ${workoutsGenerated} entrenamientos exitosamente`,
+          });
+        } catch (error: any) {
+          console.error('❌ Error generating workouts:', error);
+          toast({
+            title: "Advertencia",
+            description: "El mesociclo se creó pero hubo un error generando los entrenamientos",
+            variant: "destructive",
+          });
+        }
       }
       
       return { id: mesoRef.id };
@@ -275,6 +308,7 @@ export function useUpdateMesocycleStatus() {
 
 /**
  * Genera todos los workouts de un mesociclo basado en un template de programa
+ * @returns número de workouts generados
  */
 async function generateWorkoutsFromTemplate(
   mesocycleId: string,
@@ -282,31 +316,49 @@ async function generateWorkoutsFromTemplate(
   startDate: Date,
   weeks: number,
   userId: string
-) {
+): Promise<number> {
+  console.log('🚀 Iniciando generación de workouts:', { mesocycleId, templateId, weeks });
+  
   try {
-    // Obtener el template del programa
+    // ✅ Obtener el template del programa
     const templateRef = doc(db, 'templates', templateId);
     const templateSnap = await getDoc(templateRef);
     
     if (!templateSnap.exists()) {
-      throw new Error('Template no encontrado');
+      console.error('❌ Template no encontrado:', templateId);
+      throw new Error(`Template no encontrado: ${templateId}`);
     }
     
     const template = templateSnap.data() as ProgramTemplate;
+    console.log('✅ Template obtenido:', template.name);
+    
+    // ✅ Validar que el template tenga sesiones
     const sessions = template.sessions || [];
+    if (sessions.length === 0) {
+      console.error('❌ Template sin sesiones:', templateId);
+      throw new Error(`El template "${template.name}" no tiene sesiones configuradas`);
+    }
+    
+    console.log(`📋 Sesiones encontradas: ${sessions.length}`);
+    
     const trainingDays = getTrainingSchedule(template.days_per_week);
+    let workoutsCreated = 0;
     
     // Generar workouts para cada semana
     for (let week = 0; week < weeks; week++) {
       const weekStart = addWeeks(startDate, week);
+      console.log(`📅 Generando semana ${week + 1}/${weeks}`);
       
-      // Para cada día de entrenamiento (usar for...of para await)
+      // Para cada día de entrenamiento
       for (let dayIdx = 0; dayIdx < trainingDays.length; dayIdx++) {
         const dayOffset = trainingDays[dayIdx];
         const workoutDate = addDays(weekStart, dayOffset);
         const daySession = sessions[dayIdx % sessions.length];
         
-        if (!daySession) continue;
+        if (!daySession) {
+          console.warn(`⚠️ Sesión no encontrada para día ${dayIdx}`);
+          continue;
+        }
         
         // Crear el documento workout
         const workoutRef = doc(collection(db, 'workouts'));
@@ -326,41 +378,58 @@ async function generateWorkoutsFromTemplate(
         
         // Guardar workout (await para garantizar que existe antes de crear exercises)
         await setDoc(workoutRef, workoutData);
+        workoutsCreated++;
+        console.log(`  ✅ Workout creado: ${workoutData.name} (${format(workoutDate, 'dd/MM')})`);
         
         // Crear workout_exercises para cada ejercicio del día
         if (daySession.blocks && daySession.blocks.length > 0) {
+          let exercisesAdded = 0;
+          
           for (let exIndex = 0; exIndex < daySession.blocks.length; exIndex++) {
             const block = daySession.blocks[exIndex];
             
             // Buscar el exercise_id real basado en el nombre
-            const exerciseId = await findExerciseIdByName(block.exercise);
+            const exerciseName = block.exercise_name || block.exercise;
+            const exerciseId = await findExerciseIdByName(exerciseName);
             
             if (!exerciseId) {
-              console.warn(`Ejercicio no encontrado: ${block.exercise}`);
+              console.warn(`    ⚠️ Ejercicio no encontrado: "${exerciseName}"`);
               continue;
             }
             
             const workoutExRef = doc(collection(db, 'workout_exercises'));
+            const repRange = block.rep_range_min && block.rep_range_max 
+              ? `${block.rep_range_min}-${block.rep_range_max}`
+              : Array.isArray(block.rep_range) 
+                ? block.rep_range.join('-') 
+                : String(block.rep_range || '8-12');
+            
             const workoutExData = {
               id: workoutExRef.id,
               workout_id: workoutRef.id,
-              user_id: userId,  // Denormalizar user_id para RLS
+              user_id: userId,
               exercise_id: exerciseId,
               order_index: exIndex,
               target_sets: block.sets,
-              target_reps: Array.isArray(block.rep_range) ? block.rep_range.join('-') : String(block.rep_range || ''),
+              target_reps: repRange,
               target_rir: block.rir_target || 2,
               notes: '',
               created_at: serverTimestamp(),
             };
             
             await setDoc(workoutExRef, workoutExData);
+            exercisesAdded++;
           }
+          
+          console.log(`    💪 ${exercisesAdded}/${daySession.blocks.length} ejercicios agregados`);
         }
       }
     }
+    
+    console.log(`✅ Generación completada: ${workoutsCreated} workouts creados`);
+    return workoutsCreated;
   } catch (error) {
-    console.error('Error generating workouts:', error);
+    console.error('❌ Error generating workouts:', error);
     throw error;
   }
 }
