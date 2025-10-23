@@ -31,7 +31,8 @@ export default function CreateMesocycle() {
   const { data: muscles } = useMuscles();
   const createMesocycle = useCreateMesocycle();
   
-  const [step, setStep] = useState(1);
+  // ✅ CORREGIDO: Iniciar en paso 2 si viene con template desde URL
+  const [step, setStep] = useState(templateIdFromUrl ? 2 : 1);
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState<Date>();
   const [lengthWeeks, setLengthWeeks] = useState(6);
@@ -53,14 +54,38 @@ export default function CreateMesocycle() {
     enabled: !!templateIdFromUrl,
   });
 
+  // ✅ CORREGIDO: Restaurar datos guardados del borrador
+  useEffect(() => {
+    const draft = sessionStorage.getItem('mesocycle-draft');
+    if (draft) {
+      try {
+        const data = JSON.parse(draft);
+        if (!name) setName(data.name || '');
+        if (!startDate && data.startDate) setStartDate(new Date(data.startDate));
+        if (lengthWeeks === 6 && data.lengthWeeks) setLengthWeeks(data.lengthWeeks);
+        if (effortScale === 'RIR' && data.effortScale) setEffortScale(data.effortScale);
+        sessionStorage.removeItem('mesocycle-draft');
+      } catch (e) {
+        console.error('Error parsing draft:', e);
+      }
+    }
+  }, []);
+
   // ✨ NUEVO: Pre-llenar campos con datos del template de URL
   useEffect(() => {
     if (templateFromUrl && !selectedTemplate) {
       setSelectedTemplate(templateFromUrl);
-      setName(`Mesociclo ${templateFromUrl.name}`);
+      if (!name) {
+        setName(`Mesociclo ${templateFromUrl.name}`);
+      }
       setLengthWeeks(templateFromUrl.weeks || 6);
+      
+      // ✅ CORREGIDO: Si está en paso 1 y tiene template, avanzar a paso 2
+      if (step === 1) {
+        setStep(2);
+      }
     }
-  }, [templateFromUrl, selectedTemplate]);
+  }, [templateFromUrl, selectedTemplate, step, name]);
 
   const toggleMuscle = (muscleId: string) => {
     setSelectedMuscles(prev => 
@@ -272,7 +297,7 @@ export default function CreateMesocycle() {
                       </Button>
                     </AlertDescription>
                   </Alert>
-                ) : (
+                 ) : (
                   <div className="text-center py-8 border-2 border-dashed rounded-lg">
                     <p className="text-muted-foreground mb-4">
                       Puedes elegir un programa del catálogo o crear uno manual
@@ -280,7 +305,16 @@ export default function CreateMesocycle() {
                     <div className="flex gap-2 justify-center">
                       <Button
                         variant="outline"
-                        onClick={() => navigate('/programs/browse')}
+                        onClick={() => {
+                          // ✅ CORREGIDO: Guardar estado antes de navegar
+                          sessionStorage.setItem('mesocycle-draft', JSON.stringify({
+                            name,
+                            startDate: startDate?.toISOString(),
+                            lengthWeeks,
+                            effortScale
+                          }));
+                          navigate('/programs/browse');
+                        }}
                       >
                         <Sparkles className="mr-2 h-4 w-4" />
                         Explorar Programas
