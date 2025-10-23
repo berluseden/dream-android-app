@@ -36,10 +36,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.aiSummarizeCheckIn = exports.aiGenerateProgram = exports.aiSuggestWorkoutTweaks = void 0;
+exports.aiSummarizeCheckIn = exports.aiGenerateProgram = exports.aiSuggestWorkoutTweaks = exports.DEFAULT_AI_CONFIG = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const openai_1 = __importDefault(require("openai"));
+// Configuración de AI por defecto
+exports.DEFAULT_AI_CONFIG = {
+    model: 'gpt-5', // Modelo por defecto
+    max_completion_tokens: 4000, // Límite de tokens de salida
+    reasoning_effort: 'medium', // Nivel de razonamiento: low|medium|high
+};
 // Nota: La API Key de OpenAI debe configurarse como variable de entorno del backend (no del cliente)
 // firebase functions:config:set openai.key="sk-..."
 // y luego acceder vía functions.config().openai.key
@@ -76,8 +82,9 @@ Responde en español con bullets cortos. Si falta información, asume prácticas
         ]
     };
     const chat = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: exports.DEFAULT_AI_CONFIG.model,
         temperature: 0.4,
+        max_tokens: exports.DEFAULT_AI_CONFIG.max_completion_tokens,
         messages: [
             { role: 'system', content: system },
             userMsg
@@ -115,8 +122,9 @@ Equipo disponible: ${(equipment || []).join(', ') || 'gimnasio completo'}.
 Preferencias: volumen moderado, técnica estricta, progresión lineal simple.
 Usa nombres de ejercicios comunes y claros en español.`;
     const chat = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: exports.DEFAULT_AI_CONFIG.model,
         temperature: 0.3,
+        max_tokens: exports.DEFAULT_AI_CONFIG.max_completion_tokens,
         messages: [
             { role: 'system', content: system },
             { role: 'user', content: userPrompt }
@@ -156,8 +164,9 @@ Devuelve:
 Máximo 120 palabras.`;
     const msg = JSON.stringify(checkIn || {});
     const chat = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: exports.DEFAULT_AI_CONFIG.model,
         temperature: 0.5,
+        max_tokens: exports.DEFAULT_AI_CONFIG.max_completion_tokens,
         messages: [
             { role: 'system', content: system },
             { role: 'user', content: msg }
