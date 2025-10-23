@@ -128,15 +128,26 @@ export function TodayWorkoutWidget() {
           </div>
         </div>
 
-        {/* CTA Principal */}
-        <Button 
-          onClick={handleStartWorkout}
-          size="lg"
-          className="w-full text-lg font-semibold"
-        >
-          <Dumbbell className="mr-2 h-5 w-5" />
-          Comenzar Entrenamiento
-        </Button>
+        {/* CTAs Principales */}
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleStartWorkout}
+            size="lg"
+            className="flex-1 text-lg font-semibold"
+          >
+            <Dumbbell className="mr-2 h-5 w-5" />
+            Comenzar
+          </Button>
+          <Button 
+            onClick={() => navigate(`/mesocycles/${todayWorkout.mesocycle.id}/calendar`)}
+            size="lg"
+            variant="outline"
+            className="flex-1"
+          >
+            <Calendar className="mr-2 h-5 w-5" />
+            Ver Calendario
+          </Button>
+        </div>
 
         {/* Progreso del mesociclo */}
         <div className="pt-2 border-t">

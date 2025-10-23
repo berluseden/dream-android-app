@@ -34,8 +34,7 @@ export default function BrowsePrograms() {
   );
 
   /**
-   * ✨ NUEVO: Navegar a crear mesociclo con el programa seleccionado
-   * Esto auto-generará todos los workouts del mesociclo
+   * ✨ MODIFICADO: Ir a wizard pero simplificado con template
    */
   const handleUseProgram = (program: ProgramTemplate) => {
     navigate(`/mesocycles/create?template=${program.id}`);

@@ -19,6 +19,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { CalendarIcon, ArrowLeft, ArrowRight, Check, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { ProgramTemplate } from '@/hooks/usePrograms';
 
@@ -106,6 +107,37 @@ export default function CreateMesocycle() {
     }));
   };
 
+  // ✨ NUEVO: Crear mesociclo rápido con template (sin configurar músculos manualmente)
+  const handleQuickCreateWithTemplate = async () => {
+    if (!user || !startDate || !selectedTemplate) return;
+
+    try {
+      // Crear con targets automáticos basados en muscle_focus del template
+      const autoTargets = (selectedTemplate.muscle_focus || ['chest', 'back', 'legs', 'shoulders', 'arms']).map(muscleGroup => ({
+        muscle_id: muscleGroup,
+        sets_min: 10,
+        sets_max: 20,
+        sets_target: 15,
+      }));
+
+      const result = await createMesocycle.mutateAsync({
+        user_id: user.uid,
+        name,
+        start_date: startDate,
+        length_weeks: lengthWeeks,
+        specialization: selectedTemplate.muscle_focus || [],
+        effort_scale: effortScale,
+        targets: autoTargets,
+        template_id: selectedTemplate.id,
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      navigate(`/mesocycles/${result.id}/calendar`);
+    } catch (error: any) {
+      console.error('Error creating mesocycle:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user || !startDate) return;
 
@@ -128,12 +160,15 @@ export default function CreateMesocycle() {
         template_id: selectedTemplate?.id || undefined,
       });
 
-      // ✅ CORREGIDO: Esperar más tiempo para que se completen todas las operaciones
-      // y las queries se invaliden/refresquen
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // ✅ CORREGIDO: Navegar al dashboard en lugar del detalle
-      navigate('/');
+      // ✅ NUEVO: Si tiene template, redirigir al calendario del mesociclo
+      // Si no tiene template, ir al dashboard
+      if (selectedTemplate) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        navigate(`/mesocycles/${result.id}/calendar`);
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        navigate('/');
+      }
     } catch (error: any) {
       // Error is already handled by the mutation's onError
       console.error('Error creating mesocycle:', error);
@@ -153,43 +188,134 @@ export default function CreateMesocycle() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Crear Mesociclo</h1>
-            <p className="text-muted-foreground">Paso {step} de 4</p>
+            <h1 className="text-3xl font-bold">
+              {selectedTemplate ? 'Iniciar Programa de Entrenamiento' : 'Crear Mesociclo'}
+            </h1>
+            <p className="text-muted-foreground">
+              {selectedTemplate ? 'Configura tu fecha de inicio' : `Paso ${step} de 4`}
+            </p>
           </div>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          {[1, 2, 3, 4].map(s => (
-            <div
-              key={s}
-              className={cn(
-                "h-2 flex-1 rounded-full transition-colors",
-                s <= step ? "bg-primary" : "bg-muted"
-              )}
-            />
-          ))}
-        </div>
+        {!selectedTemplate && (
+          <div className="flex gap-2 mb-6">
+            {[1, 2, 3, 4].map(s => (
+              <div
+                key={s}
+                className={cn(
+                  "h-2 flex-1 rounded-full transition-colors",
+                  s <= step ? "bg-primary" : "bg-muted"
+                )}
+              />
+            ))}
+          </div>
+        )}
 
-        {/* ✨ Mostrar programa seleccionado */}
+        {/* ✨ Formulario simplificado cuando hay template */}
         {selectedTemplate && (
-          <Alert className="mb-6 border-primary/50 bg-primary/5">
-            <Sparkles className="h-4 w-4" />
-            <AlertTitle>Programa Seleccionado</AlertTitle>
-            <AlertDescription>
-              <div className="mt-2 space-y-1">
-                <p className="font-medium">{selectedTemplate.name}</p>
-                <p className="text-sm">{selectedTemplate.description}</p>
-                <div className="flex gap-2 mt-2">
-                  <Badge variant="secondary">{selectedTemplate.days_per_week} días/semana</Badge>
-                  <Badge variant="secondary">{selectedTemplate.weeks} semanas</Badge>
-                  <Badge variant="secondary">{selectedTemplate.split}</Badge>
+          <>
+            <Alert className="mb-6 border-primary/50 bg-primary/5">
+              <Sparkles className="h-4 w-4" />
+              <AlertTitle>Programa Seleccionado</AlertTitle>
+              <AlertDescription>
+                <div className="mt-2 space-y-1">
+                  <p className="font-medium text-lg">{selectedTemplate.name}</p>
+                  <p className="text-sm">{selectedTemplate.description}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="secondary">{selectedTemplate.days_per_week} días/semana</Badge>
+                    <Badge variant="secondary">{selectedTemplate.weeks} semanas</Badge>
+                    <Badge variant="secondary">{selectedTemplate.split}</Badge>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  ✨ Los entrenamientos se generarán automáticamente al crear el mesociclo
-                </p>
-              </div>
-            </AlertDescription>
-          </Alert>
+              </AlertDescription>
+            </Alert>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración Rápida</CardTitle>
+                <CardDescription>
+                  Solo necesitamos algunos detalles para comenzar tu entrenamiento
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="quick-name">Nombre de tu Mesociclo</Label>
+                  <Input
+                    id="quick-name"
+                    placeholder={`Mi ${selectedTemplate.name}`}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Puedes dejarlo como está o personalizarlo
+                  </p>
+                </div>
+
+                <div>
+                  <Label>¿Cuándo quieres comenzar?</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "PPP", { locale: es }) : "Seleccionar fecha"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Recomendamos comenzar un lunes para mejor organización
+                  </p>
+                </div>
+
+                <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Lo que se generará automáticamente:
+                  </h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>✓ {(selectedTemplate.sessions?.length || 0) * selectedTemplate.weeks} entrenamientos programados</li>
+                    <li>✓ Todos los ejercicios con series, reps y RIR</li>
+                    <li>✓ Calendario completo de {selectedTemplate.weeks} semanas</li>
+                    <li>✓ Progresión automática de volumen</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/programs/browse')}
+                    className="flex-1"
+                  >
+                    Cambiar Programa
+                  </Button>
+                  <Button
+                    onClick={handleQuickCreateWithTemplate}
+                    disabled={!name || !startDate || createMesocycle.isPending}
+                    className="flex-1"
+                  >
+                    {createMesocycle.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {createMesocycle.isPending ? 'Creando...' : 'Crear y Ver Calendario'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
 
         {step === 1 && (

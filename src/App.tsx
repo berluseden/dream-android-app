@@ -20,6 +20,7 @@ import Workouts from "./pages/Workouts";
 import TodayWorkout from "./pages/TodayWorkout";
 import CreateMesocycle from "./pages/mesocycles/CreateMesocycle";
 import MesocycleDetail from "./pages/mesocycles/MesocycleDetail";
+import MesocycleCalendar from "./pages/mesocycles/MesocycleCalendar";
 import Progress from "./pages/Progress";
 import Yearly from "./pages/stats/Yearly";
 import Messages from "./pages/Messages";
@@ -142,6 +143,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CreateMesocycle />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mesocycles/:mesocycleId/calendar"
+              element={
+                <ProtectedRoute>
+                  <MesocycleCalendar />
                 </ProtectedRoute>
               }
             />
