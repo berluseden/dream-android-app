@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UpdateBanner } from "@/components/pwa/UpdateBanner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminGuard } from "@/components/admin/AdminGuard";
@@ -110,6 +110,15 @@ const App = () => (
               }
             />
 
+            <Route
+              path="/programs"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/programs/browse" replace />
+                </ProtectedRoute>
+              }
+            />
+            
             <Route
               path="/programs/browse"
               element={
