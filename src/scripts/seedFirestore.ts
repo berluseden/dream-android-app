@@ -1,5 +1,15 @@
 import { collection, writeBatch, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import upperLower from '@/data/templates/upper_lower.json';
+import ppl from '@/data/templates/push_pull_legs.json';
+import arnold from '@/data/templates/arnold_split.json';
+import nsuns from '@/data/templates/nSuns531.json';
+import chestSpec from '@/data/templates/specialization_chest_6w.json';
+import backSpec from '@/data/templates/specialization_back_6w.json';
+import deltsSpec from '@/data/templates/specialization_delts_6w.json';
+import quadsGlutes from '@/data/templates/quads_glutes_strength_8w.json';
+import peaking from '@/data/templates/peaking_strength_6w.json';
+import posteriorChain from '@/data/templates/posterior_chain_8w.json';
 
 export async function seedMuscles() {
   const muscles = [
@@ -130,10 +140,74 @@ export async function seedExercises(muscleIds: Record<string, string>) {
   await batch.commit();
 }
 
+/**
+ * Migra todos los templates locales a Firestore
+ */
+export async function seedTemplates() {
+  const localTemplates = [
+    upperLower,
+    ppl,
+    arnold,
+    nsuns,
+    chestSpec,
+    backSpec,
+    deltsSpec,
+    quadsGlutes,
+    peaking,
+    posteriorChain,
+  ];
+
+  const batch = writeBatch(db);
+  const templateIds: string[] = [];
+
+  for (const tpl of localTemplates) {
+    // Normalizar estructura del template
+    const sessions = (tpl.days || []).map((d: any) => ({
+      name: d.name,
+      blocks: (d.exercises || []).map((ex: any) => ({
+        exercise_name: ex.name,
+        sets: ex.sets,
+        rep_range_min: typeof ex.reps === 'string' ? parseInt(ex.reps.split('-')[0]) : ex.rep_range?.[0] || 8,
+        rep_range_max: typeof ex.reps === 'string' ? parseInt(ex.reps.split('-')[1]) : ex.rep_range?.[1] || 12,
+        rir_target: ex.rir ?? 1,
+        rest_seconds: ex.rest_seconds ?? 90,
+      })),
+    }));
+
+    const normalizedTemplate = {
+      name: tpl.name || 'Programa Sin Nombre',
+      description: tpl.description || '',
+      split: tpl.name || 'Split Custom',
+      weeks: (tpl as any).length_weeks || 6,
+      days_per_week: (tpl as any).frequency || (tpl as any).days?.length || 4,
+      level: (tpl as any).level === 'intermedio' ? 'intermediate' : (tpl as any).level || 'intermediate',
+      required_equipment: (tpl as any).required_equipment || [],
+      muscle_focus: (tpl as any).muscle_focus || [],
+      focus: (tpl as any).focus || 'hypertrophy',
+      rating_avg: 4.8,
+      rating_count: 120,
+      times_used: 840,
+      sessions,
+      is_public: true,
+      created_at: new Date(),
+    };
+
+    const ref = doc(collection(db, 'templates'));
+    batch.set(ref, normalizedTemplate);
+    templateIds.push(ref.id);
+    console.log(`✅ Template "${tpl.name}" preparado con ID: ${ref.id}`);
+  }
+
+  await batch.commit();
+  console.log(`✅ ${templateIds.length} templates migrados a Firestore`);
+  return templateIds;
+}
+
 export async function runSeed() {
   try {
     const muscleIds = await seedMuscles();
     await seedExercises(muscleIds);
+    await seedTemplates();
     return { success: true, message: 'Seed completado exitosamente' };
   } catch (error) {
     console.error('Error en seed:', error);

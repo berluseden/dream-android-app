@@ -4,6 +4,7 @@ import { db, functions } from '@/lib/firebase';
 import { httpsCallable } from 'firebase/functions';
 import { toast } from '@/hooks/use-toast';
 import { BackupJob, BackupScope } from '@/types/admin.types';
+import { seedTemplates } from '@/scripts/seedFirestore';
 
 export function useBackupJobs() {
   return useQuery({
@@ -71,21 +72,22 @@ export function useReindexFields() {
 export function useSeedCatalogs() {
   return useMutation({
     mutationFn: async () => {
-      const seedCatalogs = httpsCallable(functions, 'seedCatalogs');
-      const result = await seedCatalogs();
-      return result.data;
+      // Ejecutar migración local de templates
+      const result = await seedTemplates();
+      return { success: true, templateIds: result };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
-        title: 'Seed completado',
-        description: 'Los catálogos han sido inicializados',
+        title: 'Templates migrados exitosamente',
+        description: `${data.templateIds.length} programas han sido cargados a Firestore`,
       });
     },
     onError: (error: any) => {
+      console.error('Error migrando templates:', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error.message || 'No se pudo completar el seed',
+        title: 'Error en migración',
+        description: error.message || 'No se pudieron migrar los templates',
       });
     },
   });

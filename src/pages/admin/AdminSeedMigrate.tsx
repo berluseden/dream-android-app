@@ -46,28 +46,32 @@ export default function AdminSeedMigrate() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Inicialización de Catálogos</CardTitle>
+          <CardTitle>Migración de Templates</CardTitle>
           <CardDescription>
-            Crea los datos iniciales del sistema (músculos, ejercicios, plantillas)
+            Migra todos los programas locales (JSON) a Firestore con IDs reales
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Esta operación es idempotente: no creará duplicados si los datos ya existen.
-          </p>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Esta operación creará documentos en la colección 'templates' de Firestore.
+              Ejecuta esto ANTES de crear mesociclos para que los programas tengan IDs consistentes.
+            </AlertDescription>
+          </Alert>
           <Button
             onClick={handleSeed}
             disabled={isLoading}
             className="w-full"
           >
             <Database className="mr-2 h-4 w-4" />
-            {seedCatalogs.isPending ? 'Ejecutando Seed...' : 'Ejecutar Seed Completo'}
+            {seedCatalogs.isPending ? 'Migrando Templates...' : 'Migrar Templates a Firestore'}
           </Button>
           {seedCatalogs.isSuccess && lastAction === 'seed' && (
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Seed completado exitosamente
+                ✅ Migración completada. Todos los programas ahora tienen IDs reales en Firestore.
               </AlertDescription>
             </Alert>
           )}

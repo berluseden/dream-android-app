@@ -257,46 +257,17 @@ export function useCreateMesocycle() {
       });
       
       try {
-          // ✅ CORREGIDO: Si el template es local, guardarlo en Firestore primero
-          let actualTemplateId = data.template_id;
+          // Validar que el template exista en Firestore
+          const templateRef = doc(db, 'templates', data.template_id);
+          const templateSnap = await getDoc(templateRef);
           
-          if (data.template_id.startsWith('local-')) {
-            console.log('🔄 Template local detectado, guardando en Firestore...');
-            
-            // Importar dinámicamente el módulo de usePrograms
-            const { getLocalTemplates } = await import('@/hooks/usePrograms');
-            const localTemplates = getLocalTemplates();
-            
-            // Obtener el índice del template local
-            const localIndex = parseInt(data.template_id.split('-')[1]);
-            const localTemplate = localTemplates[localIndex];
-            
-            if (localTemplate) {
-              // Guardar en Firestore (sin el ID local)
-              const { id, ...templateData } = localTemplate;
-              const templatesRef = collection(db, 'templates');
-              const newTemplateDoc = await addDoc(templatesRef, {
-                ...templateData,
-                created_at: serverTimestamp(),
-                created_by: data.user_id,
-              });
-              
-              actualTemplateId = newTemplateDoc.id;
-              
-              // Actualizar el mesociclo con el ID real
-              await updateDoc(doc(db, 'mesocycles', mesoRef.id), {
-                template_id: actualTemplateId,
-              });
-              
-              console.log('✅ Template guardado en Firestore:', actualTemplateId);
-            } else {
-              throw new Error('Template local no encontrado en índice: ' + localIndex);
-            }
+          if (!templateSnap.exists()) {
+            throw new Error('Template no encontrado. Por favor ejecuta primero la migración de templates.');
           }
           
           const workoutsGenerated = await generateWorkoutsFromTemplate(
             mesoRef.id,
-            actualTemplateId,
+            data.template_id,
             data.start_date,
             data.length_weeks,
             data.user_id

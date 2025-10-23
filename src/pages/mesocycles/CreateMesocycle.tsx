@@ -42,21 +42,13 @@ export default function CreateMesocycle() {
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [volumeTargets, setVolumeTargets] = useState<Record<string, { min: number; max: number; target: number }>>({});
 
-  // ✨ CORREGIDO: Obtener template desde URL (local o remoto)
+  // Cargar template desde URL si viene de /programs/browse (solo Firestore)
   const { data: templateFromUrl } = useQuery<ProgramTemplate | null>({
     queryKey: ['template', templateIdFromUrl],
     queryFn: async () => {
       if (!templateIdFromUrl) return null;
       
-      // ✅ Si es un template local (local-X)
-      if (templateIdFromUrl.startsWith('local-')) {
-        const { getLocalTemplates } = await import('@/hooks/usePrograms');
-        const localTemplates = getLocalTemplates();
-        const localIndex = parseInt(templateIdFromUrl.split('-')[1]);
-        return localTemplates[localIndex] || null;
-      }
-      
-      // ✅ Si es un template remoto de Firestore
+      // Buscar en Firestore por ID
       const templateRef = doc(db, 'templates', templateIdFromUrl);
       const templateSnap = await getDoc(templateRef);
       if (!templateSnap.exists()) return null;
