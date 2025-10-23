@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useMesocycle, useUpdateMesocycleStatus, useDeleteMesocycle } from '@/hooks/useMesocycles';
+import { useMesocycle, useUpdateMesocycleStatus, useDeleteMesocycle, useRegenerateWorkouts } from '@/hooks/useMesocycles';
 import { useWorkoutsWithExercises } from '@/hooks/useWorkouts';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Calendar, Target, Dumbbell, ArrowLeft, TrendingUp, MoreVertical, Pause, CheckCircle2, Trash2, Play } from 'lucide-react';
+import { Calendar, Target, Dumbbell, ArrowLeft, TrendingUp, MoreVertical, Pause, CheckCircle2, Trash2, Play, RefreshCw } from 'lucide-react';
 import { format, differenceInDays, addWeeks, startOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { WeeklyCalendarView } from '@/components/workouts/WeeklyCalendarView';
@@ -44,6 +44,7 @@ export default function MesocycleDetail() {
   // Hooks de mutations
   const updateStatus = useUpdateMesocycleStatus();
   const deleteMesocycle = useDeleteMesocycle();
+  const regenerateWorkouts = useRegenerateWorkouts();
   
   // Handlers
   const handlePause = () => {
@@ -160,27 +161,44 @@ export default function MesocycleDetail() {
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                     Marcar como Completado
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                 </>
               )}
               
               {mesocycle.status === 'paused' && (
-                <DropdownMenuItem onClick={() => handleResume()}>
-                  <Play className="mr-2 h-4 w-4" />
-                  Reanudar Mesociclo
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => handleResume()}>
+                    <Play className="mr-2 h-4 w-4" />
+                    Reanudar Mesociclo
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              
+              {/* Opción de regenerar entrenamientos si no hay o si hay un template */}
+              {mesocycle.template_id && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      regenerateWorkouts.mutate(id!);
+                    }}
+                    disabled={regenerateWorkouts.isPending}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {workouts.length === 0 ? 'Generar Entrenamientos' : 'Regenerar Entrenamientos'}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
               )}
               
               {mesocycle.status !== 'active' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Eliminar Mesociclo
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem 
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar Mesociclo
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

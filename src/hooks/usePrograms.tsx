@@ -178,3 +178,23 @@ export function useCloneTemplate() {
     },
   });
 }
+
+/**
+ * 🆕 Export local templates para usar desde otros hooks
+ */
+export function getLocalTemplates() {
+  const localLib = [
+    upperLower,
+    ppl,
+    arnold,
+    nsuns,
+    chestSpec,
+    backSpec,
+    deltsSpec,
+    quadsGlutes,
+    peaking,
+    posteriorChain,
+  ].map((tpl: any, idx: number) => normalizeLocalTemplate(tpl, `local-${idx}`));
+  
+  return localLib;
+}

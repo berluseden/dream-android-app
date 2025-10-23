@@ -13,6 +13,7 @@ import {
   getDoc,
   limit,
   Timestamp,
+  addDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -239,9 +240,46 @@ export function useCreateMesocycle() {
         });
         
         try {
+          // ✅ CORREGIDO: Si el template es local, guardarlo en Firestore primero
+          let actualTemplateId = data.template_id;
+          
+          if (data.template_id.startsWith('local-')) {
+            console.log('🔄 Template local detectado, guardando en Firestore...');
+            
+            // Importar dinámicamente el módulo de usePrograms
+            const { getLocalTemplates } = await import('@/hooks/usePrograms');
+            const localTemplates = getLocalTemplates();
+            
+            // Obtener el índice del template local
+            const localIndex = parseInt(data.template_id.split('-')[1]);
+            const localTemplate = localTemplates[localIndex];
+            
+            if (localTemplate) {
+              // Guardar en Firestore (sin el ID local)
+              const { id, ...templateData } = localTemplate;
+              const templatesRef = collection(db, 'templates');
+              const newTemplateDoc = await addDoc(templatesRef, {
+                ...templateData,
+                created_at: serverTimestamp(),
+                created_by: data.user_id,
+              });
+              
+              actualTemplateId = newTemplateDoc.id;
+              
+              // Actualizar el mesociclo con el ID real
+              await updateDoc(doc(db, 'mesocycles', mesoRef.id), {
+                template_id: actualTemplateId,
+              });
+              
+              console.log('✅ Template guardado en Firestore:', actualTemplateId);
+            } else {
+              throw new Error('Template local no encontrado en índice: ' + localIndex);
+            }
+          }
+          
           const workoutsGenerated = await generateWorkoutsFromTemplate(
             mesoRef.id,
-            data.template_id,
+            actualTemplateId,
             data.start_date,
             data.length_weeks,
             data.user_id
@@ -255,7 +293,7 @@ export function useCreateMesocycle() {
           console.error('❌ Error generating workouts:', error);
           toast({
             title: "Advertencia",
-            description: "El mesociclo se creó pero hubo un error generando los entrenamientos",
+            description: error.message || "El mesociclo se creó pero hubo un error generando los entrenamientos",
             variant: "destructive",
           });
         }
@@ -389,6 +427,84 @@ export function useDeleteMesocycle() {
     onError: (error: any) => {
       toast({
         title: "Error al eliminar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * 🆕 Hook para regenerar workouts de un mesociclo
+ */
+export function useRegenerateWorkouts() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async (mesocycleId: string) => {
+      // 1. Obtener el mesociclo
+      const mesoDoc = await getDoc(doc(db, 'mesocycles', mesocycleId));
+      if (!mesoDoc.exists()) {
+        throw new Error('Mesociclo no encontrado');
+      }
+      
+      const mesoData = mesoDoc.data();
+      const templateId = mesoData.template_id;
+      
+      if (!templateId) {
+        throw new Error('Este mesociclo no tiene un programa asociado');
+      }
+      
+      // 2. Eliminar workouts existentes (si los hay)
+      const workoutsQuery = query(
+        collection(db, 'workouts'),
+        where('mesocycle_id', '==', mesocycleId)
+      );
+      const workoutsSnap = await getDocs(workoutsQuery);
+      
+      const batch = writeBatch(db);
+      for (const workoutDoc of workoutsSnap.docs) {
+        // Eliminar workout_exercises y sets asociados
+        const exercisesQuery = query(
+          collection(db, 'workout_exercises'),
+          where('workout_id', '==', workoutDoc.id)
+        );
+        const exercisesSnap = await getDocs(exercisesQuery);
+        exercisesSnap.docs.forEach(d => batch.delete(d.ref));
+        
+        const setsQuery = query(
+          collection(db, 'sets'),
+          where('workout_id', '==', workoutDoc.id)
+        );
+        const setsSnap = await getDocs(setsQuery);
+        setsSnap.docs.forEach(d => batch.delete(d.ref));
+        
+        batch.delete(workoutDoc.ref);
+      }
+      await batch.commit();
+      
+      // 3. Regenerar workouts
+      const workoutsGenerated = await generateWorkoutsFromTemplate(
+        mesocycleId,
+        templateId,
+        mesoData.start_date.toDate(),
+        mesoData.length_weeks,
+        mesoData.user_id
+      );
+      
+      return workoutsGenerated;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      toast({
+        title: "✅ Entrenamientos regenerados",
+        description: `Se generaron ${count} entrenamientos exitosamente`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al regenerar",
         description: error.message,
         variant: "destructive",
       });
