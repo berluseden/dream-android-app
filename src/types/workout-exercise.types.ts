@@ -7,7 +7,8 @@ import { Timestamp } from 'firebase/firestore';
 export interface WorkoutExercise {
   id: string;
   workout_id: string;
-  exercise_id: string;           // FK a exercises (puede ser null si ejercicio custom)
+  user_id: string;                // Denormalizado para RLS
+  exercise_id: string;            // FK a exercises (puede ser null si ejercicio custom)
   exercise_name: string;          // Denormalizado para preservar historial
   order: number;                  // Orden en la sesión (1, 2, 3...)
   sets_target: number;            // Sets objetivo del programa

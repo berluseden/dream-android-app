@@ -273,12 +273,13 @@ async function generateWorkoutsFromTemplate(
     for (let week = 0; week < weeks; week++) {
       const weekStart = addWeeks(startDate, week);
       
-      // Para cada día de entrenamiento
-      trainingDays.forEach((dayOffset, dayIndex) => {
+      // Para cada día de entrenamiento (usar for...of para await)
+      for (let dayIdx = 0; dayIdx < trainingDays.length; dayIdx++) {
+        const dayOffset = trainingDays[dayIdx];
         const workoutDate = addDays(weekStart, dayOffset);
-        const daySession = sessions[dayIndex % sessions.length]; // Rotar si hay menos sesiones que días
+        const daySession = sessions[dayIdx % sessions.length];
         
-        if (!daySession) return;
+        if (!daySession) continue;
         
         // Crear el documento workout
         const workoutRef = doc(collection(db, 'workouts'));
@@ -286,34 +287,37 @@ async function generateWorkoutsFromTemplate(
           id: workoutRef.id,
           user_id: userId,
           mesocycle_id: mesocycleId,
-          name: daySession.name || `Día ${dayIndex + 1}`,
+          name: daySession.name || `Día ${dayIdx + 1}`,
           description: '',
           scheduled_date: Timestamp.fromDate(workoutDate),
           week_number: week + 1,
-          day_number: dayIndex + 1,
+          day_number: dayIdx + 1,
           status: 'scheduled',
           created_at: serverTimestamp(),
           updated_at: serverTimestamp(),
         };
         
-        // Guardar workout
-        setDoc(workoutRef, workoutData);
+        // Guardar workout (await para garantizar que existe antes de crear exercises)
+        await setDoc(workoutRef, workoutData);
         
         // Crear workout_exercises para cada ejercicio del día
         if (daySession.blocks && daySession.blocks.length > 0) {
-          daySession.blocks.forEach(async (block: any, exIndex: number) => {
+          for (let exIndex = 0; exIndex < daySession.blocks.length; exIndex++) {
+            const block = daySession.blocks[exIndex];
+            
             // Buscar el exercise_id real basado en el nombre
             const exerciseId = await findExerciseIdByName(block.exercise);
             
             if (!exerciseId) {
               console.warn(`Ejercicio no encontrado: ${block.exercise}`);
-              return;
+              continue;
             }
             
             const workoutExRef = doc(collection(db, 'workout_exercises'));
             const workoutExData = {
               id: workoutExRef.id,
               workout_id: workoutRef.id,
+              user_id: userId,  // Denormalizar user_id para RLS
               exercise_id: exerciseId,
               order_index: exIndex,
               target_sets: block.sets,
@@ -323,10 +327,10 @@ async function generateWorkoutsFromTemplate(
               created_at: serverTimestamp(),
             };
             
-            setDoc(workoutExRef, workoutExData);
-          });
+            await setDoc(workoutExRef, workoutExData);
+          }
         }
-      });
+      }
     }
   } catch (error) {
     console.error('Error generating workouts:', error);
@@ -355,27 +359,69 @@ function getTrainingSchedule(frequency: number): number[] {
 async function findExerciseIdByName(exerciseName: string): Promise<string | null> {
   try {
     const exercisesRef = collection(db, 'exercises');
-    const q = query(exercisesRef, limit(50)); // Traer los primeros 50
+    const q = query(exercisesRef, limit(100));
     const snapshot = await getDocs(q);
     
-    const normalizedSearchName = exerciseName.toLowerCase().trim();
+    // Función de normalización mejorada
+    const normalize = (str: string) => 
+      str.toLowerCase()
+         .trim()
+         .replace(/[()]/g, '')
+         .replace(/\s+/g, ' ')
+         .replace(/á/g, 'a')
+         .replace(/é/g, 'e')
+         .replace(/í/g, 'i')
+         .replace(/ó/g, 'o')
+         .replace(/ú/g, 'u');
     
-    // Buscar match exacto primero
+    const normalizedSearch = normalize(exerciseName);
+    const searchWords = normalizedSearch.split(' ');
+    
+    // 1. Match exacto
     for (const doc of snapshot.docs) {
       const data = doc.data();
-      if (data.name && data.name.toLowerCase().trim() === normalizedSearchName) {
+      if (data.name && normalize(data.name) === normalizedSearch) {
+        console.log(`✅ Match exacto: "${exerciseName}" → "${data.name}"`);
         return doc.id;
       }
     }
     
-    // Si no hay match exacto, buscar match parcial
+    // 2. Match parcial (todas las palabras presentes)
     for (const doc of snapshot.docs) {
       const data = doc.data();
-      if (data.name && data.name.toLowerCase().includes(normalizedSearchName)) {
+      if (!data.name) continue;
+      
+      const exerciseNormalized = normalize(data.name);
+      const allWordsPresent = searchWords.every(word => 
+        exerciseNormalized.includes(word)
+      );
+      
+      if (allWordsPresent) {
+        console.log(`✅ Match parcial: "${exerciseName}" → "${data.name}"`);
         return doc.id;
       }
     }
     
+    // 3. Fuzzy matching (al menos 70% de palabras coinciden)
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      if (!data.name) continue;
+      
+      const exerciseWords = normalize(data.name).split(' ');
+      const matchCount = searchWords.filter(word =>
+        exerciseWords.some(exWord => 
+          exWord.includes(word) || word.includes(exWord)
+        )
+      ).length;
+      
+      const matchRatio = matchCount / searchWords.length;
+      if (matchRatio >= 0.7) {
+        console.log(`⚠️ Fuzzy match (${Math.round(matchRatio * 100)}%): "${exerciseName}" → "${data.name}"`);
+        return doc.id;
+      }
+    }
+    
+    console.warn(`❌ No se encontró ejercicio para: "${exerciseName}"`);
     return null;
   } catch (error) {
     console.error('Error finding exercise:', error);

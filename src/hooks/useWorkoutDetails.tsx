@@ -67,6 +67,7 @@ export function useTodayWorkoutDetails(userId: string) {
           workoutExercises.push({
             id: exDoc.id,
             workout_id: exData.workout_id,
+            user_id: userId,  // Agregar user_id
             exercise_id: exData.exercise_id,
             exercise_name: exerciseDetails.name,
             order: exData.order_index || 0,
@@ -74,7 +75,7 @@ export function useTodayWorkoutDetails(userId: string) {
             rep_range_min: typeof exData.target_reps === 'string' ? parseInt(exData.target_reps.split('-')[0]) : exData.target_reps,
             rep_range_max: typeof exData.target_reps === 'string' ? parseInt(exData.target_reps.split('-')[1]) : exData.target_reps,
             rir_target: exData.target_rir || 2,
-            rest_seconds: 120, // Default, puede venir del template
+            rest_seconds: 120,
             notes: exData.notes || '',
             created_at: exData.created_at?.toDate() || new Date(),
           });

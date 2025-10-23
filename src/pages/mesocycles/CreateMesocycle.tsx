@@ -89,7 +89,7 @@ export default function CreateMesocycle() {
       sets_target: volumeTargets[muscleId].target,
     }));
 
-    await createMesocycle.mutateAsync({
+    const result = await createMesocycle.mutateAsync({
       user_id: user.uid,
       name,
       start_date: startDate,
@@ -97,10 +97,10 @@ export default function CreateMesocycle() {
       specialization: selectedMuscles,
       effort_scale: effortScale,
       targets,
-      template_id: templateId || undefined, // ✨ NUEVO: Pasar template_id para auto-generación
+      template_id: templateId || undefined,
     });
 
-    navigate('/');
+    navigate(`/mesocycles/${result.id}`);
   };
 
   const canContinueStep1 = name && startDate && lengthWeeks >= 4 && lengthWeeks <= 8;
